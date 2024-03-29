@@ -1,25 +1,21 @@
 package org.example.Edge;
-
 import zmq.socket.Pair;
-
-
 public class Sensor {
-
     //padre de sensores (humedad-temperatura-humo)
-
     private String tipoSensor;
 
     private String archivoConfig;
 
-    private Pair intervaloMedicion;
-
+    private double limiteInferior;
+    private double limiteSuperior;
 
     public Sensor() { }
 
-    public Sensor(String tipoSensor, String archivoConfig, Pair intervaloMedicion) {
+    public Sensor(String tipoSensor, String archivoConfig, double limiteInferior, double limiteSuperior) {
         this.tipoSensor = tipoSensor;
         this.archivoConfig = archivoConfig;
-        this.intervaloMedicion = intervaloMedicion;
+        this.limiteInferior = limiteInferior;
+        this.limiteSuperior = limiteSuperior;
     }
 
     public String getTipoSensor() {
@@ -38,21 +34,26 @@ public class Sensor {
         this.archivoConfig = archivo;
     }
 
-    public Pair getIntervaloMedicion() {
-        return intervaloMedicion;
+    public double getlimiteInferior () {
+        return limiteInferior;
     }
 
-    public void setIntervaloMedicion(Pair intervaloMedicion) {
-        this.intervaloMedicion = intervaloMedicion;
+    public void setlimiteInferior(double limiteInferior) {
+        this.limiteInferior = limiteInferior;
+    }
+    public double getLimiteSuperior () {
+        return limiteSuperior;
+    }
+    public void setlimiteSuperior(double limiteSuperior) {
+        this.limiteSuperior = limiteSuperior;
     }
 
-    public void inicializar(String tipo, String archivoConfig, Pair intervaloMedicion){
+    public void inicializar(String tipo, String archivoConfig, double limiteInferior, double limiteSuperior){
 
     }
-
 
     public double generarMedicion(){
-        return Math.random();
+        return 0.0;
     }
 
     public void enviarMedicionProxy(){
