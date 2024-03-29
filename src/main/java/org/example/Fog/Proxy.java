@@ -10,7 +10,7 @@ public class Proxy
         try (ZContext context = new ZContext()) {
             // Socket to talk to clients
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://*:5555");
+            socket.bind("192.168.1.13");
 
             while (!Thread.currentThread().isInterrupted()) {
                 // Block until a message is received
