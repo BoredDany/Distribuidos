@@ -1,4 +1,6 @@
 package org.example.Edge;
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import zmq.socket.Pair;
 
@@ -27,5 +29,6 @@ public class SensorTemperatura extends Sensor{
         double randomValue = 200.0 * random.nextDouble() - 100.0;
         return Math.round(randomValue * 10.0) / 10.0;
     }
+
 
 }

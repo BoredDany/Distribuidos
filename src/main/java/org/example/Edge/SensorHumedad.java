@@ -1,7 +1,7 @@
 package org.example.Edge;
 
-import zmq.socket.Pair;
-
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class SensorHumedad extends Sensor{
@@ -18,13 +18,13 @@ public class SensorHumedad extends Sensor{
     public void inicializar(String tipo, String archivoConfig, double limiteInferior, double limiteSuperior) {
         super.inicializar(tipo, archivoConfig, limiteInferior, limiteSuperior);
         tipo = "Humedad";
-        archivoConfig = "";
+        archivoConfig = archivoConfig;
         limiteInferior = 70.0;
         limiteSuperior = 100.0;
     }
 
     @Override
-    public double generarMedicion() {
+    public double generarMedicion() throws IOException {
         Random random = new Random();
         double randomValue = random.nextDouble() * 100;
         return Math.round(randomValue * 10.0) / 10.0;

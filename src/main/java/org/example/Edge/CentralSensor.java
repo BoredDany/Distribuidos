@@ -9,9 +9,11 @@ import java.util.List;
 public class CentralSensor {
     public static void main(String[] args) {
         List<SensorHumo> sensoresHumo = new ArrayList<>();
+
         for (int i = 0; i < 10; i++) {
             SensorHumo sh = new SensorHumo();
             sensoresHumo.add(sh);
+
         }
 
         List<SensorHumedad> sensoresHumedad = new ArrayList<>();

@@ -1,6 +1,10 @@
 package org.example.Edge;
-import zmq.socket.Pair;
-public class Sensor {
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class Sensor {
     //padre de sensores (humedad-temperatura-humo)
     private String tipoSensor;
 
@@ -52,12 +56,31 @@ public class Sensor {
 
     }
 
-    public double generarMedicion(){
-        return 0.0;
-    }
-
     public void enviarMedicionProxy(){
 
     }
 
+    public List<String> leerArchivoConfig(String path) throws IOException {
+        File file = new File(path);
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+
+        String line;
+        List<String> data = new ArrayList<>();
+        while((line = br.readLine()) != null){
+               data.add(line);
+        }
+
+        br.close();
+        fr.close();
+
+        for (String info : data){
+            System.out.println(info);
+        }
+
+        return data;
+    }
+
+
+    public abstract double generarMedicion() throws IOException;
 }
