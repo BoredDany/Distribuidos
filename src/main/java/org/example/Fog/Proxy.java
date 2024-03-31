@@ -1,21 +1,24 @@
 package org.example.Fog;
 
+import org.example.Edge.Ip;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Proxy {
 
-    private String ip;
+    private String ip = Ip.PROXY_PRINCIPAL;
     private Integer intervaloTemperatura;
     private Integer intervaloHumedad;
-    private String ipChecker;
+    private String ipChecker = Ip.HEALTH_CHECKER;
+    private String ipCentralSensor = Ip.CENTRAL_SENSOR;
 
-    public Proxy(String ip, Integer intervaloTemperatura, Integer intervaloHumedad, String ipChecker) {
-        this.ip = ip;
+    public Proxy(Integer intervaloTemperatura, Integer intervaloHumedad) {
         this.intervaloTemperatura = intervaloTemperatura;
         this.intervaloHumedad = intervaloHumedad;
-        this.ipChecker = ipChecker;
     }
 
     public void start() {
@@ -26,25 +29,42 @@ public class Proxy {
             while (!Thread.currentThread().isInterrupted()) {
                 byte[] message = socket.recv(0);
                 String request = new String(message, ZMQ.CHARSET);
-                System.out.println("Mensaje recibido por el servidor: " + request);
 
                 if (request.equals("Verificar servidor")) {
                     socket.send("Servidor funcionando".getBytes(ZMQ.CHARSET), 0);
                 } else {
-                    // Procesa el mensaje recibido si es necesario
-                    // Envía una respuesta al cliente si es necesario
-                    System.out.println("hola");
-                    //socket.send("Respuesta desde el servidor".getBytes(ZMQ.CHARSET), 0);
+
                 }
             }
         }
     }
-    public static void main(String[] args) throws Exception {
-        Proxy proxy = new Proxy("192.168.20.8", 5, 5, "192.168.20.8");
-        while (true){
-            proxy.start();
-            //recibir mediciones de sensores
+    private String recibirMedicion(){
+        try (ZContext context = new ZContext()) {
+            ZMQ.Socket socket = context.createSocket(SocketType.PULL);
+            socket.connect("tcp://" + ipCentralSensor + ":5557");
+            return socket.recvStr();
+        } catch (Exception e) {
+            System.out.println("Error al enviar ip del servidor: " + e.getMessage());
+            return "";
         }
+    }
+    public static void main(String[] args) throws Exception {
+        Proxy proxy = new Proxy(5,5);
+        ZContext context = new ZContext();
+        while (true) {
+            try {
+                proxy.start();
+                // Recibe un mensaje del worker
+                ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
+                String rta = socketMedicion.recvStr();
+                System.out.println(rta);
+            }catch (Exception e){
+                context.close();
+                System.out.println("Error: " + e.getMessage());
+            }
+
+        }
+
 
     }
 }

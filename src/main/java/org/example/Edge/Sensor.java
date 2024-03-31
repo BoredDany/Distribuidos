@@ -8,7 +8,6 @@ public abstract class Sensor {
     private String tipoSensor;
     private Integer intervalo;
     private String archivoConfig;
-
     private double probDentroRango;
     private double probFueraRango;
     private double probError;

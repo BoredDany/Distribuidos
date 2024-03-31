@@ -8,5 +8,4 @@ public class TipoSensor {
     public static final String CONFIGHUMEDAD = "C:\\Users\\danym\\IdeaProjects\\Incendios\\src\\main\\java\\org\\example\\Edge\\humedadConfig.txt";
     public static final String CONFIGTEMPERATURA = "C:\\Users\\danym\\IdeaProjects\\Incendios\\src\\main\\java\\org\\example\\Edge\\temperaturaConfig.txt";
 
-
 }
