@@ -15,17 +15,13 @@ import java.util.Collections;
 public class CentralSensor {
     public static void main(String[] args) {
 
-        ZContext context = new ZContext();
-
         // Crea y ejecuta 10 hilos para cada tipo de sensor
         Thread[] threads = new Thread[30];
-        //String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
-
-        String[] tiposSensores = {TipoSensor.HUMO};
+        String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
 
         for (String tipo : tiposSensores) {
-            for (int i = 0; i < 2; i++) {
-                threads[i] = new Thread(new SensorHandler(tipo, context));
+            for (int i = 0; i < 10; i++) {
+                threads[i] = new Thread(new SensorHandler(tipo));
                 threads[i].start();
             }
         }
@@ -38,8 +34,6 @@ public class CentralSensor {
                 e.printStackTrace();
             }
         }
-
-        context.close();
 
     }
 }

@@ -11,10 +11,9 @@ public class SensorHandler implements Runnable{
     private String ipSistemaCalidad;
     private String ipChecker = Ip.HEALTH_CHECKER;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
-    private String ipProxy;
-    private ZContext context;
-    public SensorHandler(String tipoSensor, ZContext context) {
-        this.context = context;
+    private String ipProxy = Ip.PROXY_PRINCIPAL;
+
+    public SensorHandler(String tipoSensor) {
         this.tipoSensor = tipoSensor;
     }
 
@@ -31,48 +30,47 @@ public class SensorHandler implements Runnable{
 
         if (sensor != null) {
             sensor.inicializar();
-            ZMQ.Socket socket = context.createSocket(SocketType.PULL);
-            socket.connect("tcp://" + ipChecker + ":4242");
 
-            ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
+            // Crear un contexto para este hilo
+            try (ZContext context = new ZContext()) {
 
-            try {
-                while (true){
-                    //generar medición cada t unidad de tiempo según el tipo
-                    double medicion = sensor.generarMedicion();
+                try {
+                    while (true){
+                        // Generar medición cada cierto intervalo según el tipo de sensor
+                        double medicion = sensor.generarMedicion();
 
-                    //obtener la hora
-                    Instant instant = Instant.now();
-                    long epochMilli = instant.toEpochMilli();
-                    long seconds = epochMilli / 1000;
-                    long minutes = seconds / 60;
-                    long hours = minutes / 60;
-                    int hour = (int) hours % 24;
-                    int minute = (int) minutes % 60;
-                    int second = (int) seconds % 60;
+                        // Obtener la hora actual
+                        Instant instant = Instant.now();
+                        long epochMilli = instant.toEpochMilli();
+                        long seconds = epochMilli / 1000;
+                        long minutes = seconds / 60;
+                        long hours = minutes / 60;
+                        int hour = (int) hours % 24;
+                        int minute = (int) minutes % 60;
+                        int second = (int) seconds % 60;
 
-                    //obtener ip del servidor
+                        // Construir mensaje de medición
+                        String mensaje = sensor.getTipoSensor() + ":" + medicion + " - time:" + hour + ":" + minute + ":" + second;
 
-                    String ip = socket.recvStr();
+                        // Crear socket de envío de mediciones (PUSH)
+                        ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
+                        socketMedicion.connect("tcp://" + ipProxy + ":5555");
 
-                    String mensaje = sensor.getTipoSensor() + ":" + medicion + " - time:" + hour + ":" + minute + ":" + second;
+                        // Enviar medición al proxy
+                        socketMedicion.send(mensaje);
 
-                    //enviar a proxy
-                    socketMedicion.bind("tcp://" + ipCentralSensor + ":5557");
-                    socketMedicion.send(mensaje);
-                    System.out.println("Envio mensaje");
-                    System.out.println("IP:" + ip + " - Mensaje: " + mensaje + " - time:" + hour + ":" + minute + ":" + second);
+                        // Cerrar el socket
+                        socketMedicion.close();
 
-                    //esperar para siguiente medición
+                        // Mostrar información
+                        System.out.println("Envío mensaje a la IP:" + ipProxy + " - Mensaje: " + mensaje);
 
+                        // Esperar para la siguiente medición (opcional)
+                        Thread.sleep(sensor.getIntervalo() * 1000);
+                    }
+                } catch (Exception e){
+                    System.out.println("Error al medir: " + e.getMessage());
                 }
-            }catch (Exception e){
-                System.out.println("Error al medir: " + e.getMessage());
-                socket.close();
-                socketMedicion.close();
-            }finally {
-                socket.close();
-                socketMedicion.close();
             }
         }
     }

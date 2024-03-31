@@ -50,19 +50,22 @@ public class Proxy {
     }
     public static void main(String[] args) throws Exception {
         Proxy proxy = new Proxy(5,5);
-        ZContext context = new ZContext();
-        while (true) {
-            try {
-                proxy.start();
-                // Recibe un mensaje del worker
-                ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
-                String rta = socketMedicion.recvStr();
-                System.out.println(rta);
-            }catch (Exception e){
-                context.close();
-                System.out.println("Error: " + e.getMessage());
-            }
+        try (ZContext context = new ZContext()) {
+            // Crear socket para recibir mediciones (PULL)
+            ZMQ.Socket socketMedicion = context.createSocket(SocketType.PULL);
+            socketMedicion.bind("tcp://" + proxy.ip + ":5555");
 
+            while (true) {
+                try {
+                    // Recibir un mensaje del sensor
+                    String mensaje = socketMedicion.recvStr();
+                    System.out.println("Mensaje recibido: " + mensaje);
+                } catch (Exception e) {
+                    System.out.println("Error al recibir mensaje: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error en el contexto ZeroMQ: " + e.getMessage());
         }
 
 
