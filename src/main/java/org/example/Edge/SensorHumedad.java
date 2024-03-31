@@ -17,10 +17,6 @@ public class SensorHumedad extends Sensor{
     @Override
     public void inicializar(String tipo, String archivoConfig, double limiteInferior, double limiteSuperior) {
         super.inicializar(tipo, archivoConfig, limiteInferior, limiteSuperior);
-        tipo = "Humedad";
-        archivoConfig = archivoConfig;
-        limiteInferior = 70.0;
-        limiteSuperior = 100.0;
     }
 
     @Override

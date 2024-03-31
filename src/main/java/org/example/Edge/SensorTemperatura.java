@@ -17,10 +17,6 @@ public class SensorTemperatura extends Sensor{
     @Override
     public void inicializar(String tipo, String archivoConfig, double limiteInferior, double limiteSuperior) {
         super.inicializar(tipo, archivoConfig, limiteInferior, limiteSuperior);
-        tipo = "Temperatura";
-        archivoConfig = "";
-        limiteInferior = 11.0;
-        limiteSuperior = 29.4;
     }
 
     @Override

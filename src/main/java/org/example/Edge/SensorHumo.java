@@ -15,7 +15,7 @@ public class SensorHumo extends Sensor {
     public void inicializar(String tipo, String archivoConfig, double limiteInferior, double limiteSuperior) {
         super.inicializar(tipo, archivoConfig, limiteInferior, limiteSuperior);
         tipo = "Humo";
-        archivoConfig = "";
+        archivoConfig = "configHumo.txt";
         limiteInferior = 0.0;
         limiteSuperior = 1.0;
     }

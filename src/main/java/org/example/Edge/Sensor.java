@@ -38,17 +38,17 @@ public abstract class Sensor {
         this.archivoConfig = archivo;
     }
 
-    public double getlimiteInferior () {
+    public double getLimiteInferior () {
         return limiteInferior;
     }
 
-    public void setlimiteInferior(double limiteInferior) {
+    public void setLimiteInferior(double limiteInferior) {
         this.limiteInferior = limiteInferior;
     }
     public double getLimiteSuperior () {
         return limiteSuperior;
     }
-    public void setlimiteSuperior(double limiteSuperior) {
+    public void setLimiteSuperior(double limiteSuperior) {
         this.limiteSuperior = limiteSuperior;
     }
 
@@ -68,7 +68,7 @@ public abstract class Sensor {
         String line;
         List<String> data = new ArrayList<>();
         while((line = br.readLine()) != null){
-               data.add(line);
+            data.add(line);
         }
 
         br.close();
