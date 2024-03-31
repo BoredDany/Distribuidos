@@ -5,82 +5,78 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Sensor {
-    //padre de sensores (humedad-temperatura-humo)
     private String tipoSensor;
-
+    private Integer intervalo;
     private String archivoConfig;
 
-    private double limiteInferior;
-    private double limiteSuperior;
+    private double probDentroRango;
+    private double probFueraRango;
+    private double probError;
 
     public Sensor() { }
 
-    public Sensor(String tipoSensor, String archivoConfig, double limiteInferior, double limiteSuperior) {
+    public Integer getIntervalo() {
+        return intervalo;
+    }
+
+    public void setIntervalo(Integer intervalo) {
+        this.intervalo = intervalo;
+    }
+
+    public Sensor(String tipoSensor, String archivoConfig) {
         this.tipoSensor = tipoSensor;
         this.archivoConfig = archivoConfig;
-        this.limiteInferior = limiteInferior;
-        this.limiteSuperior = limiteSuperior;
     }
 
     public String getTipoSensor() {
         return tipoSensor;
     }
 
-    public void setTipoSensor(String tipoSensor) {
-        this.tipoSensor = tipoSensor;
-    }
-
     public String getArchivoConfig() {
         return archivoConfig;
     }
 
-    public void setArchivoConfig(String archivo) {
-        this.archivoConfig = archivo;
+    public double getProbDentroRango() {
+        return probDentroRango;
     }
 
-    public double getLimiteInferior () {
-        return limiteInferior;
+    public double getProbFueraRango() {
+        return probFueraRango;
     }
 
-    public void setLimiteInferior(double limiteInferior) {
-        this.limiteInferior = limiteInferior;
-    }
-    public double getLimiteSuperior () {
-        return limiteSuperior;
-    }
-    public void setLimiteSuperior(double limiteSuperior) {
-        this.limiteSuperior = limiteSuperior;
+    public double getProbError() {
+        return probError;
     }
 
-    public void inicializar(String tipo, String archivoConfig, double limiteInferior, double limiteSuperior){
 
+    public void inicializar(){
+        try (BufferedReader br = new BufferedReader(new FileReader(this.archivoConfig))) {
+            String linea;
+            int contador = 0;
+            double[] numeros = new double[3];
+
+            // Lee cada línea del archivo
+            while ((linea = br.readLine()) != null && contador < 3) {
+                double numero = Float.parseFloat(linea);
+                numeros[contador] = numero;
+                contador++;
+            }
+
+            //asigna probabilidades al sensor
+            this.probDentroRango = numeros[0];
+            this.probFueraRango = numeros[1];
+            this.probError = numeros[2];
+
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.println("Error: el archivo contiene un formato no válido.");
+        }
     }
 
     public void enviarMedicionProxy(){
 
     }
 
-    public List<String> leerArchivoConfig(String path) throws IOException {
-        File file = new File(path);
-        FileReader fr = new FileReader(file);
-        BufferedReader br = new BufferedReader(fr);
-
-        String line;
-        List<String> data = new ArrayList<>();
-        while((line = br.readLine()) != null){
-            data.add(line);
-        }
-
-        br.close();
-        fr.close();
-
-        for (String info : data){
-            System.out.println(info);
-        }
-
-        return data;
-    }
-
-
-    public abstract double generarMedicion() throws IOException;
+    public abstract double generarMedicion() ;
 }

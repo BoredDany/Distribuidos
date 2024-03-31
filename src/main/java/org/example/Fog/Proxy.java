@@ -1,41 +1,50 @@
 package org.example.Fog;
 
+import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 public class Proxy {
-    public static void main(String[] args) throws Exception {
+
+    private String ip;
+    private Integer intervaloTemperatura;
+    private Integer intervaloHumedad;
+    private String ipChecker;
+
+    public Proxy(String ip, Integer intervaloTemperatura, Integer intervaloHumedad, String ipChecker) {
+        this.ip = ip;
+        this.intervaloTemperatura = intervaloTemperatura;
+        this.intervaloHumedad = intervaloHumedad;
+        this.ipChecker = ipChecker;
+    }
+
+    public void start() {
         try (ZContext context = new ZContext()) {
-            // Socket to talk to clients
-            ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://localhost:5000");
+            ZMQ.Socket socket = context.createSocket(SocketType.REP);
+            socket.bind("tcp://" + ipChecker + ":5555");
 
             while (!Thread.currentThread().isInterrupted()) {
-                // Block until a message is received
-                byte[] reply = socket.recv(0);
+                byte[] message = socket.recv(0);
+                String request = new String(message, ZMQ.CHARSET);
+                System.out.println("Mensaje recibido por el servidor: " + request);
 
-                // Print the message
-                String mensaje = new String(reply, ZMQ.CHARSET);
-                System.out.println("Received: [" + mensaje + "]");
-
-                // Parse the message and send an appropriate response
-                String response;
-                if (mensaje.contains("Medicion Humo")) {
-                    double medicion = Double.parseDouble(mensaje.split(":")[1].trim());
-                    response = "Medicion de humo ha sido recibida. Resultado: " + medicion;
-                } else if (mensaje.contains("Medicion Temperatura")) {
-                    double medicion = Double.parseDouble(mensaje.split(":")[1].trim());
-                    response = "Medicion de temperatura ha sido recibida. Resultado: " + medicion + " °C";
-                } else if (mensaje.contains("Medicion Humedad")) {
-                    double medicion = Double.parseDouble(mensaje.split(":")[1].trim());
-                    response = "Medicion de humedad ha sido recibida. Resultado: " + medicion + " %";
+                if (request.equals("Verificar servidor")) {
+                    socket.send("Servidor funcionando".getBytes(ZMQ.CHARSET), 0);
                 } else {
-                    response = "Tipo de medicion no reconocido";
+                    // Procesa el mensaje recibido si es necesario
+                    // Envía una respuesta al cliente si es necesario
+                    System.out.println("hola");
+                    //socket.send("Respuesta desde el servidor".getBytes(ZMQ.CHARSET), 0);
                 }
-
-                // Send the response
-                socket.send(response.getBytes(ZMQ.CHARSET), 0);
             }
         }
+    }
+    public static void main(String[] args) throws Exception {
+        Proxy proxy = new Proxy("192.168.20.8", 5, 5, "192.168.20.8");
+        while (true){
+            proxy.start();
+            //recibir mediciones de sensores
+        }
+
     }
 }
