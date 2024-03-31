@@ -5,6 +5,8 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SensorHandler implements Runnable{
     private String tipoSensor;
@@ -20,6 +22,10 @@ public class SensorHandler implements Runnable{
     @Override
     public void run() {
         Sensor sensor = null;
+        List<Double> dentroRango = new ArrayList<>();
+        List<Double> fueraRango = new ArrayList<>();
+        List<Double> erroreno = new ArrayList<>();
+
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
             sensor = new SensorHumedad(tipoSensor, TipoSensor.CONFIGHUMEDAD);
         }else if(tipoSensor.equals(TipoSensor.HUMO)){
@@ -37,7 +43,14 @@ public class SensorHandler implements Runnable{
                 try {
                     while (true){
                         // Generar medición cada cierto intervalo según el tipo de sensor
-                        double medicion = sensor.generarMedicion();
+                        double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
+                        if(medicion < 0.0) {
+                            erroreno.add(medicion);
+                        } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
+                            dentroRango.add(medicion);
+                        }else if (medicion < sensor.getLimiteInferior() && medicion > sensor.getLimiteSuperior()){
+                            fueraRango.add(medicion);
+                        }
 
                         // Obtener la hora actual
                         Instant instant = Instant.now();

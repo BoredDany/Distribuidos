@@ -1,7 +1,6 @@
 package org.example.Edge;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Sensor {
@@ -11,6 +10,8 @@ public abstract class Sensor {
     private double probDentroRango;
     private double probFueraRango;
     private double probError;
+    private double limiteInferior;
+    private double limiteSuperior;
 
     public Sensor() { }
 
@@ -25,6 +26,22 @@ public abstract class Sensor {
     public Sensor(String tipoSensor, String archivoConfig) {
         this.tipoSensor = tipoSensor;
         this.archivoConfig = archivoConfig;
+    }
+
+    public void setLimiteInferior(double limiteInferior) {
+        this.limiteInferior = limiteInferior;
+    }
+
+    public void setLimiteSuperior(double limiteSuperior, int i) {
+        this.limiteSuperior = limiteSuperior;
+    }
+
+    public double getLimiteInferior() {
+        return limiteInferior;
+    }
+
+    public double getLimiteSuperior() {
+        return limiteSuperior;
     }
 
     public String getTipoSensor() {
@@ -77,5 +94,5 @@ public abstract class Sensor {
 
     }
 
-    public abstract double generarMedicion() ;
+    public abstract double generarMedicion(List<Double> dentroRango, List<Double> fueraRango, List<Double> erroreno);
 }
