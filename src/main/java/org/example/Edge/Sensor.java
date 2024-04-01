@@ -90,10 +90,6 @@ public abstract class Sensor {
         }
     }
 
-    public void enviarMedicionProxy(){
-
-    }
-
     public abstract double generarMedicion(Integer dentroRango, Integer fueraRango, Integer erroreno);
     public abstract double generarCorrecta();
     public abstract double generarFueraDeRango();
