@@ -7,9 +7,9 @@ public abstract class Sensor {
     private String tipoSensor;
     private Integer intervalo;
     private String archivoConfig;
-    private double probDentroRango;
-    private double probFueraRango;
-    private double probError;
+    private Integer probDentroRango;
+    private Integer probFueraRango;
+    private Integer probError;
     private double limiteInferior;
     private double limiteSuperior;
 
@@ -69,11 +69,11 @@ public abstract class Sensor {
         try (BufferedReader br = new BufferedReader(new FileReader(this.archivoConfig))) {
             String linea;
             int contador = 0;
-            double[] numeros = new double[3];
+            Integer[] numeros = new Integer[3];
 
             // Lee cada línea del archivo
             while ((linea = br.readLine()) != null && contador < 3) {
-                double numero = Float.parseFloat(linea);
+                Integer numero = Integer.parseInt(linea);
                 numeros[contador] = numero;
                 contador++;
             }
@@ -94,5 +94,8 @@ public abstract class Sensor {
 
     }
 
-    public abstract double generarMedicion(List<Double> dentroRango, List<Double> fueraRango, List<Double> erroreno);
+    public abstract double generarMedicion(Integer dentroRango, Integer fueraRango, Integer erroreno);
+    public abstract double generarCorrecta();
+    public abstract double generarFueraDeRango();
+    public abstract double generarErronea();
 }

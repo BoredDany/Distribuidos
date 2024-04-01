@@ -9,9 +9,34 @@ public class SensorHumo extends Sensor {
     }
 
     @Override
-    public double generarMedicion() {
+    public double generarMedicion(Integer dentroRango, Integer fueraRango, Integer erroreno) {
         Random random = new Random();
         return random.nextInt(2);
+    }
+
+    @Override
+    public double generarCorrecta(){
+        Random random = new Random();
+        return random.nextInt(2);
+    }
+
+    @Override
+    public double generarFueraDeRango(){
+        Random random = new Random();
+        double rangoFuera = Math.max(Math.abs(this.getLimiteInferior()), Math.abs(this.getLimiteSuperior()));
+        boolean generarMenor = random.nextBoolean();
+        if (generarMenor) {
+            return this.getLimiteInferior() - random.nextDouble() * rangoFuera;
+        } else {
+            return this.getLimiteSuperior() + random.nextDouble() * rangoFuera;
+        }
+    }
+
+
+    @Override
+    public double generarErronea(){
+        Random random = new Random();
+        return random.nextDouble() * -1;
     }
 
 }

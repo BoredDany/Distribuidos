@@ -22,9 +22,9 @@ public class SensorHandler implements Runnable{
     @Override
     public void run() {
         Sensor sensor = null;
-        List<Double> dentroRango = new ArrayList<>();
-        List<Double> fueraRango = new ArrayList<>();
-        List<Double> erroreno = new ArrayList<>();
+        List<Double> dentroRango = new ArrayList<>(0);
+        List<Double> fueraRango = new ArrayList<>(0);
+        List<Double> erroreno = new ArrayList<>(0);
 
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
             sensor = new SensorHumedad(tipoSensor, TipoSensor.CONFIGHUMEDAD);
@@ -43,12 +43,13 @@ public class SensorHandler implements Runnable{
                 try {
                     while (true){
                         // Generar medición cada cierto intervalo según el tipo de sensor
-                        double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
+                        double medicion = sensor.generarMedicion(dentroRango.size(), fueraRango.size(), erroreno.size());
+
                         if(medicion < 0.0) {
                             erroreno.add(medicion);
                         } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
                             dentroRango.add(medicion);
-                        }else if (medicion < sensor.getLimiteInferior() && medicion > sensor.getLimiteSuperior()){
+                        }else if (medicion < sensor.getLimiteInferior() || medicion > sensor.getLimiteSuperior()){
                             fueraRango.add(medicion);
                         }
 
