@@ -17,8 +17,8 @@ public class CentralSensor {
 
         // Crea y ejecuta 10 hilos para cada tipo de sensor
         Thread[] threads = new Thread[30];
-        String[] tiposSensores = {TipoSensor.TEMPERATURA};
         //String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
+        String[] tiposSensores = {TipoSensor.HUMO};
 
         for (String tipo : tiposSensores) {
             for (int i = 0; i < 1; i++) {

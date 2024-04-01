@@ -22,9 +22,9 @@ public class SensorHandler implements Runnable{
     @Override
     public void run() {
         Sensor sensor = null;
-        List<Double> dentroRango = new ArrayList<>(0);
-        List<Double> fueraRango = new ArrayList<>(0);
-        List<Double> erroreno = new ArrayList<>(0);
+        Integer dentroRango = 0;
+        Integer fueraRango = 0;
+        Integer erroreno = 0;
 
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
             sensor = new SensorHumedad(tipoSensor, TipoSensor.CONFIGHUMEDAD);
@@ -40,17 +40,31 @@ public class SensorHandler implements Runnable{
             // Crear un contexto para este hilo
             try (ZContext context = new ZContext()) {
 
+                // Crear socket de envío de mediciones (PUSH)
+                ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
+                socketMedicion.connect("tcp://" + ipProxy + ":5555");
+
                 try {
                     while (true){
                         // Generar medición cada cierto intervalo según el tipo de sensor
-                        double medicion = sensor.generarMedicion(dentroRango.size(), fueraRango.size(), erroreno.size());
+                        double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
 
-                        if(medicion < 0.0) {
-                            erroreno.add(medicion);
-                        } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
-                            dentroRango.add(medicion);
-                        }else if (medicion < sensor.getLimiteInferior() || medicion > sensor.getLimiteSuperior()){
-                            fueraRango.add(medicion);
+                        if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
+                            if(medicion < 0.0) {
+                                erroreno++;
+                            } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
+                                dentroRango++;
+                            }else if (medicion > sensor.getLimiteSuperior()){
+                                fueraRango++;
+                            }
+                        }else{
+                            if(medicion < 0.0) {
+                                erroreno++;
+                            } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
+                                dentroRango++;
+                            }else if (medicion < sensor.getLimiteInferior() || medicion > sensor.getLimiteSuperior()){
+                                fueraRango++;
+                            }
                         }
 
                         // Obtener la hora actual
@@ -66,15 +80,8 @@ public class SensorHandler implements Runnable{
                         // Construir mensaje de medición
                         String mensaje = sensor.getTipoSensor() + ":" + medicion + " - time:" + hour + ":" + minute + ":" + second;
 
-                        // Crear socket de envío de mediciones (PUSH)
-                        ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
-                        socketMedicion.connect("tcp://" + ipProxy + ":5555");
-
                         // Enviar medición al proxy
                         socketMedicion.send(mensaje);
-
-                        // Cerrar el socket
-                        socketMedicion.close();
 
                         // Mostrar información
                         System.out.println("Envío mensaje a la IP:" + ipProxy + " - Mensaje: " + mensaje);
@@ -84,6 +91,7 @@ public class SensorHandler implements Runnable{
                     }
                 } catch (Exception e){
                     System.out.println("Error al medir: " + e.getMessage());
+                    socketMedicion.close();
                 }
             }
         }

@@ -11,7 +11,7 @@ public class SensorTemperatura extends Sensor{
         super(tipoSensor, archivoConfig);
         this.setIntervalo(3);
         this.setLimiteInferior(11);
-        this.setLimiteSuperior(29,4);
+        this.setLimiteSuperior(29.4);
     }
 
     @Override
@@ -33,7 +33,6 @@ public class SensorTemperatura extends Sensor{
         double porcentajeErroneo = (double) erroreno / total;
 
 
-        System.out.println("dentro" + porcentajeDentroRango +" -fuera:" + porcentajeFueraRango + "-err:" + porcentajeErroneo);
         //calcular diferencias
         double diferenciaDentroRango = pDentroRango - porcentajeDentroRango;
         double diferenciaFueraRango = pFueraRango - porcentajeFueraRango;

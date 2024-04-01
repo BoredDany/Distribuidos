@@ -32,7 +32,7 @@ public abstract class Sensor {
         this.limiteInferior = limiteInferior;
     }
 
-    public void setLimiteSuperior(double limiteSuperior, int i) {
+    public void setLimiteSuperior(double limiteSuperior) {
         this.limiteSuperior = limiteSuperior;
     }
 

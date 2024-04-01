@@ -8,6 +8,8 @@ public class SensorHumedad extends Sensor{
     public SensorHumedad(String tipoSensor, String archivoConfig) {
         super(tipoSensor, archivoConfig);
         this.setIntervalo(5);
+        this.setLimiteInferior(70);
+        this.setLimiteSuperior(100);
     }
 
     @Override
@@ -29,7 +31,6 @@ public class SensorHumedad extends Sensor{
         double porcentajeErroneo = (double) erroreno / total;
 
 
-        System.out.println("dentro" + porcentajeDentroRango +" -fuera:" + porcentajeFueraRango + "-err:" + porcentajeErroneo);
         //calcular diferencias
         double diferenciaDentroRango = pDentroRango - porcentajeDentroRango;
         double diferenciaFueraRango = pFueraRango - porcentajeFueraRango;
