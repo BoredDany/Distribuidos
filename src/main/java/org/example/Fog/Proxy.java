@@ -1,6 +1,6 @@
 package org.example.Fog;
 
-import org.example.Edge.Ip;
+import org.example.utils.Ip;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;

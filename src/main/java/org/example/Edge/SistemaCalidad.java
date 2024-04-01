@@ -1,4 +1,4 @@
-package org.example.Fog;
+package org.example.Edge;
 
 public class SistemaCalidad {
 }

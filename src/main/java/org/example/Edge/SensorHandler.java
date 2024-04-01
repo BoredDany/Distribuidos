@@ -1,5 +1,7 @@
 package org.example.Edge;
 
+import org.example.utils.Ip;
+import org.example.utils.Medicion;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -10,12 +12,14 @@ import java.util.List;
 
 public class SensorHandler implements Runnable{
     private String tipoSensor;
+    private Integer idSensor;
     private String ipSistemaCalidad;
     private String ipChecker = Ip.HEALTH_CHECKER;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
     private String ipProxy = Ip.PROXY_PRINCIPAL;
 
-    public SensorHandler(String tipoSensor) {
+    public SensorHandler(String tipoSensor, Integer id) {
+        this.idSensor = id;
         this.tipoSensor = tipoSensor;
     }
 
@@ -27,11 +31,11 @@ public class SensorHandler implements Runnable{
         Integer erroreno = 0;
 
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
-            sensor = new SensorHumedad(tipoSensor, TipoSensor.CONFIGHUMEDAD);
+            sensor = new SensorHumedad(idSensor, tipoSensor, TipoSensor.CONFIGHUMEDAD);
         }else if(tipoSensor.equals(TipoSensor.HUMO)){
-            sensor = new SensorHumo(tipoSensor, TipoSensor.CONFIGHUMO);
+            sensor = new SensorHumo(idSensor, tipoSensor, TipoSensor.CONFIGHUMO);
         }else if(tipoSensor.equals(TipoSensor.TEMPERATURA)){
-            sensor = new SensorTemperatura(tipoSensor, TipoSensor.CONFIGTEMPERATURA);
+            sensor = new SensorTemperatura(idSensor, tipoSensor, TipoSensor.CONFIGTEMPERATURA);
         }
 
         if (sensor != null) {
@@ -48,7 +52,6 @@ public class SensorHandler implements Runnable{
                     while (true){
                         // Generar medición cada cierto intervalo según el tipo de sensor
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
-
                         if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
                             if(medicion < 0.0) {
                                 erroreno++;
@@ -76,15 +79,16 @@ public class SensorHandler implements Runnable{
                         int hour = (int) hours % 24;
                         int minute = (int) minutes % 60;
                         int second = (int) seconds % 60;
+                        String hora = hour + ":" + minute + ":" + second;
 
                         // Construir mensaje de medición
-                        String mensaje = sensor.getTipoSensor() + ":" + medicion + " - time:" + hour + ":" + minute + ":" + second;
+                        Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion));
 
                         // Enviar medición al proxy
-                        socketMedicion.send(mensaje);
+                        socketMedicion.send(medicionMensje.medicionStr());
 
                         // Mostrar información
-                        System.out.println("Envío mensaje a la IP:" + ipProxy + " - Mensaje: " + mensaje);
+                        System.out.println("Envío mensaje a la IP:" + ipProxy + " - " + medicionMensje.medicionStr());
 
                         // Esperar para la siguiente medición (opcional)
                         Thread.sleep(sensor.getIntervalo() * 1000);

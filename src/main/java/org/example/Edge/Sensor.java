@@ -2,8 +2,10 @@ package org.example.Edge;
 
 import java.io.*;
 import java.util.List;
+import java.util.Random;
 
 public abstract class Sensor {
+    private Integer id;
     private String tipoSensor;
     private Integer intervalo;
     private String archivoConfig;
@@ -13,17 +15,9 @@ public abstract class Sensor {
     private double limiteInferior;
     private double limiteSuperior;
 
-    public Sensor() { }
 
-    public Integer getIntervalo() {
-        return intervalo;
-    }
-
-    public void setIntervalo(Integer intervalo) {
-        this.intervalo = intervalo;
-    }
-
-    public Sensor(String tipoSensor, String archivoConfig) {
+    public Sensor(Integer id, String tipoSensor, String archivoConfig) {
+        this.id = id;
         this.tipoSensor = tipoSensor;
         this.archivoConfig = archivoConfig;
     }
@@ -64,6 +58,17 @@ public abstract class Sensor {
         return probError;
     }
 
+    public Integer getIntervalo() {
+        return intervalo;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setIntervalo(Integer intervalo) {
+        this.intervalo = intervalo;
+    }
 
     public void inicializar(){
         try (BufferedReader br = new BufferedReader(new FileReader(this.archivoConfig))) {
@@ -90,8 +95,68 @@ public abstract class Sensor {
         }
     }
 
-    public abstract double generarMedicion(Integer dentroRango, Integer fueraRango, Integer erroreno);
-    public abstract double generarCorrecta();
-    public abstract double generarFueraDeRango();
-    public abstract double generarErronea();
+    public double generarMedicion(Integer dentroRango, Integer fueraRango, Integer erroreno) {
+        double medicion = -1;
+
+        if(dentroRango == 0 && fueraRango == 0 && erroreno == 0){
+            //si están vacias retornar una correcta
+            medicion = generarCorrecta();
+        }else{
+            //si no calcular porcentajes
+            double pDentroRango = (this.getProbDentroRango() / 100);
+            double pFueraRango = (this.getProbFueraRango() / 100);
+            double pErroneo = (this.getProbError() / 100);
+
+            //calcular proporciones
+            Integer total = dentroRango + fueraRango + erroreno;
+            double porcentajeDentroRango = (double) dentroRango / total;
+            double porcentajeFueraRango = (double) fueraRango / total;
+            double porcentajeErroneo = (double) erroreno / total;
+
+            //calcular diferencias
+            double diferenciaDentroRango = pDentroRango - porcentajeDentroRango;
+            double diferenciaFueraRango = pFueraRango - porcentajeFueraRango;
+            double diferenciaErroneo = pErroneo - porcentajeErroneo;
+
+            //si las proporciones se mantienen retornar una correcta
+            if(pDentroRango == porcentajeDentroRango && pFueraRango == porcentajeFueraRango && pErroneo == porcentajeErroneo){
+                medicion = generarCorrecta();
+            }else{//si no ver cual proporción es menor a lo que debería y de esa generar un valor
+                double diferenciaMaxima = Math.max(diferenciaDentroRango, Math.max(diferenciaFueraRango, diferenciaErroneo));
+                if(diferenciaMaxima == diferenciaDentroRango){
+                    medicion = generarCorrecta();
+                }else if(diferenciaMaxima == diferenciaFueraRango){
+                    medicion = generarFueraDeRango();
+                }else if(diferenciaMaxima == diferenciaErroneo){
+                    medicion = generarErronea();
+                }
+            }
+        }
+        return medicion;
+    }
+
+    public double generarCorrecta(){
+        Random random = new Random();
+        return this.getLimiteInferior() + (this.getLimiteSuperior() - this.getLimiteInferior()) * random.nextDouble();
+    }
+
+    public double generarFueraDeRango(){
+        Random random = new Random();
+        double rangoFuera = Math.max(Math.abs(this.getLimiteInferior()), Math.abs(this.getLimiteSuperior()));
+        boolean generarMenor = random.nextBoolean();
+        if (generarMenor) {
+            return this.getLimiteInferior() - random.nextDouble() * rangoFuera;
+        } else {
+            return this.getLimiteSuperior() + random.nextDouble() * rangoFuera;
+        }
+    }
+
+    public double generarErronea(){
+        Random random = new Random();
+        return random.nextDouble() * -1;
+    }
+
+    public  boolean alerta(double medicion){
+        return medicion < this.getLimiteInferior() || medicion > this.getLimiteSuperior();
+    }
 }
