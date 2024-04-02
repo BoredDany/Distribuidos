@@ -48,27 +48,14 @@ public class SensorHandler implements Runnable{
                 ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
                 socketMedicion.connect("tcp://" + ipProxy + ":5555");
 
+                // Crear socket de envío de mediciones (PUSH)
+                ZMQ.Socket socketAspersor = context.createSocket(SocketType.REQ);
+                socketAspersor.connect("tcp://" + ipCentralSensor + ":5000");
+
                 try {
                     while (true){
                         // Generar medición cada cierto intervalo según el tipo de sensor
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
-                        if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
-                            if(medicion < 0.0) {
-                                erroreno++;
-                            } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
-                                dentroRango++;
-                            }else if (medicion > sensor.getLimiteSuperior()){
-                                fueraRango++;
-                            }
-                        }else{
-                            if(medicion < 0.0) {
-                                erroreno++;
-                            } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
-                                dentroRango++;
-                            }else if (medicion < sensor.getLimiteInferior() || medicion > sensor.getLimiteSuperior()){
-                                fueraRango++;
-                            }
-                        }
 
                         // Obtener la hora actual
                         Instant instant = Instant.now();
@@ -84,11 +71,37 @@ public class SensorHandler implements Runnable{
                         // Construir mensaje de medición
                         Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion));
 
+                        // Mostrar información
+                        System.out.println("Envío medicion a:" + ipProxy + " - " + medicionMensje.medicionStr());
+
+                        if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
+                            if(medicion < 0.0) {
+                                erroreno++;
+                            } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
+                                dentroRango++;
+                                //activar aspersor en señal de humo
+                                if(medicion == sensor.getLimiteSuperior()){
+                                    socketAspersor.send(medicionMensje.medicionStr());
+                                    byte[] response = socketAspersor.recv(0);
+                                    System.out.println("Recivo del aspersor: " + new String(response, ZMQ.CHARSET));
+                                }
+                            }else if (medicion > sensor.getLimiteSuperior()){
+                                fueraRango++;
+                            }
+                        }else{
+                            if(medicion < 0.0) {
+                                erroreno++;
+                            } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
+                                dentroRango++;
+                            }else if (medicion < sensor.getLimiteInferior() || medicion > sensor.getLimiteSuperior()){
+                                fueraRango++;
+                            }
+                        }
+
+
                         // Enviar medición al proxy
                         socketMedicion.send(medicionMensje.medicionStr());
 
-                        // Mostrar información
-                        System.out.println("Envío mensaje a la IP:" + ipProxy + " - " + medicionMensje.medicionStr());
 
                         // Esperar para la siguiente medición (opcional)
                         Thread.sleep(sensor.getIntervalo() * 1000);
@@ -96,6 +109,7 @@ public class SensorHandler implements Runnable{
                 } catch (Exception e){
                     System.out.println("Error al medir: " + e.getMessage());
                     socketMedicion.close();
+                    socketAspersor.close();
                 }
             }
         }
