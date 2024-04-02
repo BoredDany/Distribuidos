@@ -9,22 +9,22 @@ public class Aspersor {
 
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
-            // Socket to talk to clients
+            // Socket para comunicación con sensores de humo (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
             socket.bind("tcp://" + Ip.CENTRAL_SENSOR + ":5000");
 
             while (!Thread.currentThread().isInterrupted()) {
-                // Block until a message is received
+                // Bloqueo hasta que se reciba un mensaje
                 byte[] reply = socket.recv(0);
 
-                // Print the message
+                // Mostrar mensaje
                 String mensaje = new String(reply, ZMQ.CHARSET);
                 System.out.println("Received: [" + mensaje + "]");
 
                 // Responder a sensor
                 String response = "Activo aspersor";
 
-                // Send the response
+                // Enviar respuesta
                 socket.send(response.getBytes(ZMQ.CHARSET), 0);
             }
         }

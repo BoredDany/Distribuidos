@@ -7,8 +7,6 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SensorHandler implements Runnable{
     private String tipoSensor;
@@ -46,15 +44,17 @@ public class SensorHandler implements Runnable{
 
                 // Crear socket de envío de mediciones (PUSH)
                 ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
+                // Conectar socket a la ip y puerto del proxy
                 socketMedicion.connect("tcp://" + ipProxy + ":5555");
 
-                // Crear socket de envío de mediciones (PUSH)
+                // Crear socket de comunicación aspersor (REQUEST)
                 ZMQ.Socket socketAspersor = context.createSocket(SocketType.REQ);
+                // Conectar socket a la ip y puerto de la central de sensores
                 socketAspersor.connect("tcp://" + ipCentralSensor + ":5000");
 
                 try {
                     while (true){
-                        // Generar medición cada cierto intervalo según el tipo de sensor
+                        // Generar medición
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
 
                         // Obtener la hora actual
@@ -71,7 +71,7 @@ public class SensorHandler implements Runnable{
                         // Construir mensaje de medición
                         Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion));
 
-                        // Mostrar información
+                        // Mostrar información a enviar
                         System.out.println("Envío medicion a:" + ipProxy + " - " + medicionMensje.medicionStr());
 
                         if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
@@ -98,10 +98,8 @@ public class SensorHandler implements Runnable{
                             }
                         }
 
-
                         // Enviar medición al proxy
                         socketMedicion.send(medicionMensje.medicionStr());
-
 
                         // Esperar para la siguiente medición (opcional)
                         Thread.sleep(sensor.getIntervalo() * 1000);
