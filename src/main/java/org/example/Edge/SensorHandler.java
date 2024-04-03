@@ -7,6 +7,7 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.time.Instant;
+import java.time.LocalTime;
 
 public class SensorHandler implements Runnable{
     private String tipoSensor;
@@ -58,15 +59,8 @@ public class SensorHandler implements Runnable{
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
 
                         // Obtener la hora actual
-                        Instant instant = Instant.now();
-                        long epochMilli = instant.toEpochMilli();
-                        long seconds = epochMilli / 1000;
-                        long minutes = seconds / 60;
-                        long hours = minutes / 60;
-                        int hour = (int) hours % 24;
-                        int minute = (int) minutes % 60;
-                        int second = (int) seconds % 60;
-                        String hora = hour + ":" + minute + ":" + second;
+                        LocalTime now = LocalTime.now();
+                        String hora = now.getHour() + ":" + now.getMinute() + ":" + now.getSecond();
 
                         // Construir mensaje de medición
                         Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion));
