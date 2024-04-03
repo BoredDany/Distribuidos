@@ -9,7 +9,7 @@ public class CentralSensor {
         String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
 
         for (String tipo : tiposSensores) {
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 10; i++) {
                 threads[i] = new Thread(new SensorHandler(tipo, i));
                 threads[i].start();
             }

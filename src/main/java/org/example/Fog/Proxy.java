@@ -11,7 +11,8 @@ public class Proxy {
     private String ip = Ip.PROXY_PRINCIPAL;
     private Integer intervaloTemperatura;
     private Integer intervaloHumedad;
-    private String ipChecker = Ip.HEALTH_CHECKER;
+    private Integer ipSistemaCalidad;
+    private String ipChecker;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
 
     public Proxy(Integer intervaloTemperatura, Integer intervaloHumedad) {
