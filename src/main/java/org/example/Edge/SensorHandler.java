@@ -77,7 +77,7 @@ public class SensorHandler implements Runnable{
                                 if(medicion == sensor.getLimiteSuperior()){
                                     socketAspersor.send(medicionMensje.medicionStr());
                                     byte[] response = socketAspersor.recv(0);
-                                    System.out.println("Recivo del aspersor: " + new String(response, ZMQ.CHARSET));
+                                    System.out.println("Recibo del aspersor: " + new String(response, ZMQ.CHARSET));
                                 }
                             }else if (medicion > sensor.getLimiteSuperior()){
                                 fueraRango++;
