@@ -20,6 +20,7 @@ public class SensorHandler implements Runnable{
     public SensorHandler(String tipoSensor, Integer id) {
         this.idSensor = id;
         this.tipoSensor = tipoSensor;
+        //agg archivo de config
     }
 
     @Override
@@ -30,6 +31,7 @@ public class SensorHandler implements Runnable{
         Integer erroreno = 0;
 
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
+            //enviar al constructor el archivo de config recibido en los argumentos del main
             sensor = new SensorHumedad(idSensor, tipoSensor, TipoSensor.CONFIGHUMEDAD);
         }else if(tipoSensor.equals(TipoSensor.HUMO)){
             sensor = new SensorHumo(idSensor, tipoSensor, TipoSensor.CONFIGHUMO);
