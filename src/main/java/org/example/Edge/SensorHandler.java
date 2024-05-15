@@ -63,7 +63,7 @@ public class SensorHandler implements Runnable{
                         String hora = now.getHour() + ":" + now.getMinute() + ":" + now.getSecond();
 
                         // Construir mensaje de medición
-                        Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion));
+                        Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion), sensor.correcta(medicion));
 
                         // Mostrar información a enviar
                         System.out.println("Envío medicion a:" + ipProxy + " - " + medicionMensje.medicionStr());
@@ -93,7 +93,7 @@ public class SensorHandler implements Runnable{
                         }
 
                         // Enviar medición al proxy
-                        socketMedicion.send(medicionMensje.medicionStr());
+                        socketMedicion.send(medicionMensje.toJson());
 
                         // Esperar para la siguiente medición (opcional)
                         Thread.sleep(sensor.getIntervalo() * 1000);

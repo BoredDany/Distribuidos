@@ -159,4 +159,8 @@ public abstract class Sensor {
     public  boolean alerta(double medicion){
         return medicion < this.getLimiteInferior() || medicion > this.getLimiteSuperior();
     }
+
+    public  boolean correcta(double medicion){
+        return medicion < 0.0;
+    }
 }

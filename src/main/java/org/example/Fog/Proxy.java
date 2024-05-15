@@ -1,6 +1,7 @@
 package org.example.Fog;
 
 import org.example.utils.Ip;
+import org.example.utils.Medicion;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -31,7 +32,8 @@ public class Proxy {
                 try {
                     // Recibir un mensaje del sensor
                     String mensaje = socketMedicion.recvStr();
-                    System.out.println("Mensaje recibido: " + mensaje);
+                    Medicion medicion = Medicion.fromJson(mensaje);
+                    System.out.println("Mensaje recibido: " + medicion.medicionStr());
                 } catch (Exception e) {
                     System.out.println("Error al recibir mensaje: " + e.getMessage());
                 }
