@@ -20,7 +20,7 @@ public class SensorHandler implements Runnable{
     public SensorHandler(String tipoSensor, Integer id) {
         this.idSensor = id;
         this.tipoSensor = tipoSensor;
-        //TODO agg archivo de config
+        //TODO AGREGAR ARCHIVO DE CONFIGURACION COMO PARAMETRO
     }
 
     @Override
@@ -48,12 +48,12 @@ public class SensorHandler implements Runnable{
                 // Crear socket de envío de mediciones (PUSH)
                 ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
                 // Conectar socket a la ip y puerto del proxy
-                socketMedicion.connect("tcp://" + ipProxy + ":5555");
+                socketMedicion.connect("tcp://" + ipProxy + ":" + Ip.PORT_SENSOR_PROXY);
 
                 // Crear socket de comunicación aspersor (REQUEST)
                 ZMQ.Socket socketAspersor = context.createSocket(SocketType.REQ);
                 // Conectar socket a la ip y puerto de la central de sensores
-                socketAspersor.connect("tcp://" + ipCentralSensor + ":5000");
+                socketAspersor.connect("tcp://" + ipCentralSensor + ":" + Ip.PORT_SENSOR_ASPERSOR);
 
                 try {
                     while (true){
@@ -76,7 +76,7 @@ public class SensorHandler implements Runnable{
                             } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
                                 dentroRango++;
                                 //activar aspersor en señal de humo
-                                //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD
+                                //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
                                 if(medicion == sensor.getLimiteSuperior()){
                                     socketAspersor.send(medicionMensje.medicionStr());
                                     byte[] response = socketAspersor.recv(0);
@@ -106,6 +106,8 @@ public class SensorHandler implements Runnable{
                     socketMedicion.close();
                     socketAspersor.close();
                 }
+            } catch (Exception e){
+                System.out.println("Error creando contexto ZMQ: " + e.getMessage());
             }
         }
     }
