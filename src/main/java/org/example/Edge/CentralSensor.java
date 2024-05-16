@@ -7,11 +7,13 @@ public class CentralSensor {
     public static void main(String[] args) {
 
         // Crea y ejecuta 10 hilos para cada tipo de sensor
-        Thread[] threads = new Thread[3];
-        String[] tiposSensores = {TipoSensor.HUMO/*, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA*/};
+        int numSensores = 10;
+        int numHilos = numSensores * 3;
+        Thread[] threads = new Thread[numHilos];
+        String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
 
         for (String tipo : tiposSensores) {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < numSensores; i++) {
                 threads[i] = new Thread(new SensorHandler(tipo, i));
                 threads[i].start();
             }

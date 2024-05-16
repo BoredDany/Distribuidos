@@ -19,22 +19,36 @@ public class ProxyHandler implements Runnable{
     public void run() {
         List<Medicion> mediciones = medidasPorTipo.get(tipoSensor);
 
-        if (mediciones != null) {
-            // Procesar las mediciones...
+        if (mediciones != null && mediciones.size() >= 10 &&
+                (tipoSensor.equals(TipoSensor.HUMEDAD) ||
+                        tipoSensor.equals(TipoSensor.TEMPERATURA))) {
+            // Calcular el promedio de las primeras 10 mediciones
+            double promedio = 0.0;
+            for (int i = 0; i < 10; i++) {
+                promedio += mediciones.get(i).getMedicion();
+            }
+            promedio /= 10;
+
+            // Eliminar las primeras 10 mediciones
+            for (int i = 0; i < 10; i++) {
+                mediciones.remove(0);
+            }
+
+            // Procesar el promedio...
             switch (tipoSensor) {
                 case TipoSensor.HUMO:
-                    // Lógica para procesar las mediciones de humo
-                    for (Medicion medicion : mediciones) {
-                        System.out.println(TipoSensor.HUMO + " -> " + medicion.medicionStr());
-                    }
+                    // Lógica para procesar el promedio de humo
                     break;
                 case TipoSensor.HUMEDAD:
-                    // Lógica para procesar las mediciones de humedad
+                    // Lógica para procesar el promedio de humedad
+                    System.out.println(TipoSensor.HUMEDAD + " -> Promedio: " + promedio);
                     break;
                 case TipoSensor.TEMPERATURA:
-                    // Lógica para procesar las mediciones de temperatura
+                    // Lógica para procesar el promedio de temperatura
+                    System.out.println(TipoSensor.TEMPERATURA + " -> Promedio: " + promedio);
                     break;
             }
         }
     }
+
 }
