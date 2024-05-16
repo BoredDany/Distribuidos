@@ -1,4 +1,4 @@
-package org.example.Edge;
+package org.example.utils;
 
 public class TipoSensor {
     public static final String HUMO = "humo";

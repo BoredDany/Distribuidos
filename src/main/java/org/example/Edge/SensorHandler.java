@@ -2,11 +2,11 @@ package org.example.Edge;
 
 import org.example.utils.Ip;
 import org.example.utils.Medicion;
+import org.example.utils.TipoSensor;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import java.time.Instant;
 import java.time.LocalTime;
 
 public class SensorHandler implements Runnable{
@@ -20,7 +20,7 @@ public class SensorHandler implements Runnable{
     public SensorHandler(String tipoSensor, Integer id) {
         this.idSensor = id;
         this.tipoSensor = tipoSensor;
-        //agg archivo de config
+        //TODO agg archivo de config
     }
 
     @Override
@@ -76,6 +76,7 @@ public class SensorHandler implements Runnable{
                             } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
                                 dentroRango++;
                                 //activar aspersor en señal de humo
+                                //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD
                                 if(medicion == sensor.getLimiteSuperior()){
                                     socketAspersor.send(medicionMensje.medicionStr());
                                     byte[] response = socketAspersor.recv(0);

@@ -19,6 +19,22 @@ public class Medicion {
         this.correcta = correcta;
     }
 
+    public String getTipoSensor() {
+        return tipoSensor;
+    }
+
+    public Double getMedicion() {
+        return medicion;
+    }
+
+    public boolean isAlerta() {
+        return alerta;
+    }
+
+    public boolean isCorrecta() {
+        return correcta;
+    }
+
     public String medicionStr(){
         return "Sensor " + this.idSensor + " de "
                 + this.tipoSensor + ":" + this.medicion

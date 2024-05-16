@@ -1,15 +1,17 @@
 package org.example.Edge;
 
 
+import org.example.utils.TipoSensor;
+
 public class CentralSensor {
     public static void main(String[] args) {
 
         // Crea y ejecuta 10 hilos para cada tipo de sensor
-        Thread[] threads = new Thread[30];
-        String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
+        Thread[] threads = new Thread[3];
+        String[] tiposSensores = {TipoSensor.HUMO/*, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA*/};
 
         for (String tipo : tiposSensores) {
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 3; i++) {
                 threads[i] = new Thread(new SensorHandler(tipo, i));
                 threads[i].start();
             }

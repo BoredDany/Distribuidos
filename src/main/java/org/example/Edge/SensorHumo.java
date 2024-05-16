@@ -11,17 +11,9 @@ public class SensorHumo extends Sensor {
     }
 
     @Override
-    public double generarCorrecta(){
+    public double generarMedicion(Integer dentroRango, Integer fueraRango, Integer erroreno){
         Random random = new Random();
         return random.nextInt(2);
-    }
-
-    @Override
-    public double generarFueraDeRango(){
-        Random random = new Random();
-        double minValue = 1.01;
-        double randomValue = minValue + random.nextDouble() * (Double.POSITIVE_INFINITY - minValue);
-        return randomValue;
     }
 
     @Override
