@@ -20,6 +20,8 @@ public class Proxy {
     private String ipChecker;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
     private String ipCloud = Ip.CENTRAL_SENSOR;
+    private final ConcurrentHashMap<String, ProxyHandler> handlers = new ConcurrentHashMap<>();
+
 
     public Proxy(String ip, Integer intervaloHumedad, String ipSistemaCalidad, String ipChecker, String ipCentralSensor, String ipCloud) {
         this.ip = ip;
@@ -54,19 +56,37 @@ public class Proxy {
         return ipCentralSensor;
     }
 
-    public double calcPromedio (List<Medicion> mediciones){
-        double promedio = 0.0;
+    public void start() {
+        // Crear y iniciar los handlers
+        handlers.put(TipoSensor.TEMPERATURA, new ProxyHandler(TipoSensor.TEMPERATURA));
+        handlers.put(TipoSensor.HUMO, new ProxyHandler(TipoSensor.HUMO));
+        handlers.put(TipoSensor.HUMEDAD, new ProxyHandler(TipoSensor.HUMEDAD));
 
-        for (int i = 0; i < 10; i++) {
-            promedio += mediciones.get(i).getMedicion();
+        handlers.values().forEach(handler -> new Thread(handler).start());
+
+        try (ZContext context = new ZContext()) {
+            // Crear socket para recibir mediciones (PULL)
+            ZMQ.Socket socketMedicion = context.createSocket(SocketType.PULL);
+            socketMedicion.bind("tcp://" + ip + ":" + Ip.PORT_SENSOR_PROXY);
+
+            while (true) {
+                try {
+                    // Recibir un mensaje del sensor
+                    String mensaje = socketMedicion.recvStr();
+                    Medicion medicion = Medicion.fromJson(mensaje);
+
+                    // Enviar la medición al handler correspondiente
+                    ProxyHandler handler = handlers.get(medicion.getTipoSensor());
+                    if (handler != null && medicion.isCorrecta()) {
+                        handler.addMedicion(medicion);
+                        //TODO Enviar todas las mediciones correctas y con alerta al cloud
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error al recibir mensaje: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error creando contexto ZMQ: " + e.getMessage());
         }
-        promedio /= 10;
-
-        // Eliminar las primeras 10 mediciones
-        for (int i = 0; i < 10; i++) {
-            mediciones.remove(0);
-        }
-
-        return promedio;
     }
 }

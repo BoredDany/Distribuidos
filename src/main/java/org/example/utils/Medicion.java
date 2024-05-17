@@ -38,8 +38,8 @@ public class Medicion {
     public String medicionStr(){
         return "Sensor " + this.idSensor + " de "
                 + this.tipoSensor + ":" + this.medicion
-                + " a las " + this.hora + " con alerta: "
-                + this.alerta + " con error: "
+                + " a las " + this.hora + " alerta: "
+                + this.alerta + " correcta: "
                 + this.correcta;
     }
 

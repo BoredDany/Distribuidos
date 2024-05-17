@@ -21,4 +21,9 @@ public class SensorHumo extends Sensor {
         return medicion == 1.0;
     }
 
+    @Override
+    public  boolean correcta(double medicion){
+        return true;
+    }
+
 }

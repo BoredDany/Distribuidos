@@ -161,6 +161,6 @@ public abstract class Sensor {
     }
 
     public  boolean correcta(double medicion){
-        return medicion < 0.0;
+        return medicion > 0.0;
     }
 }
