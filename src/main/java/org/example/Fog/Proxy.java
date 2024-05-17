@@ -59,7 +59,6 @@ public class Proxy {
     public void start() {
         // Crear y iniciar los handlers
         handlers.put(TipoSensor.TEMPERATURA, new ProxyHandler(TipoSensor.TEMPERATURA));
-        handlers.put(TipoSensor.HUMO, new ProxyHandler(TipoSensor.HUMO));
         handlers.put(TipoSensor.HUMEDAD, new ProxyHandler(TipoSensor.HUMEDAD));
 
         handlers.values().forEach(handler -> new Thread(handler).start());
@@ -79,7 +78,7 @@ public class Proxy {
                     ProxyHandler handler = handlers.get(medicion.getTipoSensor());
                     if (handler != null && medicion.isCorrecta()) {
                         handler.addMedicion(medicion);
-                        //TODO Enviar todas las mediciones correctas y con alerta al cloud
+                        //TODO Enviar todas las mediciones correctas y con alerta al cloud con request reply
                     }
                 } catch (Exception e) {
                     System.out.println("Error al recibir mensaje: " + e.getMessage());

@@ -27,9 +27,9 @@ public class ProxyHandler implements Runnable {
                         .mapToDouble(Medicion::getMedicion)
                         .average()
                         .orElse(0.0);
-
-                // TODO Enviar el promedio de humedad y la alerta de temperatura
                 System.out.println("Promedio -> " + medicion.getTipoSensor() + ": " + promedio);
+                // TODO Enviar el promedio de humedad y la alerta de temperatura a cloud con request reply
+                // TODO Alertar sistema de calidad si la temoeratura supera el valor permitido
                 mediciones.clear();
             }
         }
