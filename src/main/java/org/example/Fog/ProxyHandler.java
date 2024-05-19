@@ -36,20 +36,22 @@ public class ProxyHandler implements Runnable {
                         .average()
                         .orElse(0.0);
                 System.out.println("Promedio -> " + medicion.getTipoSensor() + ": " + promedio);
-                // TODO Enviar el promedio de humedad y la alerta de temperatura a cloud con request reply
 
                 if(this.tipoSensor.equals(TipoSensor.HUMEDAD)) {
                     this.promedioHumedad = promedio;
                 }
 
                 try{
-                    // Enviar al cloud aquí
+                    // Enviar al cloud mediciones
                     if(this.medicionRecibida.getTipoSensor().equals(TipoSensor.TEMPERATURA)){
                         if(promedio < TipoSensor.TEMPERATURA_INFERIOR || promedio > TipoSensor.TEMPERATURA_SUPERIOR){
                             System.out.println("ALERTA TEMPERATURA PROMEDIO -> " + medicion.getTipoSensor() + ": " + promedio);
                             socketCloud.send("ALERTA TEMPERATURA: " + promedio);
                             String respuesta = socketCloud.recvStr();
                             System.out.println("Respuesta del cloud: " + respuesta);
+
+                            //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
+
                         }
                     } else{
                         // enviar promedio al cloud si es humedad
@@ -60,7 +62,6 @@ public class ProxyHandler implements Runnable {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-
 
                 mediciones.clear();
             }

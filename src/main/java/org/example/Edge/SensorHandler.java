@@ -36,11 +36,11 @@ public class SensorHandler implements Runnable{
 
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
             //enviar al constructor el archivo de config recibido en los argumentos del main
-            sensor = new SensorHumedad(idSensor, tipoSensor, TipoSensor.CONFIGHUMEDAD);
+            sensor = new SensorHumedad(idSensor, tipoSensor, archivoConfig);
         }else if(tipoSensor.equals(TipoSensor.HUMO)){
-            sensor = new SensorHumo(idSensor, tipoSensor, TipoSensor.CONFIGHUMO);
+            sensor = new SensorHumo(idSensor, tipoSensor, archivoConfig);
         }else if(tipoSensor.equals(TipoSensor.TEMPERATURA)){
-            sensor = new SensorTemperatura(idSensor, tipoSensor, TipoSensor.CONFIGTEMPERATURA);
+            sensor = new SensorTemperatura(idSensor, tipoSensor, archivoConfig);
         }
 
         if (sensor != null) {
@@ -80,12 +80,12 @@ public class SensorHandler implements Runnable{
                             } else if(medicion >= sensor.getLimiteInferior() && medicion <= sensor.getLimiteSuperior()){
                                 dentroRango++;
                                 //activar aspersor en señal de humo
-                                //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
                                 if(medicion == sensor.getLimiteSuperior()){
                                     socketAspersor.send(medicionMensje.medicionStr());
                                     byte[] response = socketAspersor.recv(0);
                                     System.out.println("Recibo del aspersor: " + new String(response, ZMQ.CHARSET));
                                 }
+                                //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
                             }else if (medicion > sensor.getLimiteSuperior()){
                                 fueraRango++;
                             }

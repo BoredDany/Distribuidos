@@ -25,6 +25,8 @@ public class CentralCloud {
 
                 // Enviar respuesta
                 socket.send(response.getBytes(ZMQ.CHARSET), 0);
+
+                //TODO CALCULAR HUMEDAD RELATIVA MENSUAL
             }
         }catch (Exception e){
             e.printStackTrace();
