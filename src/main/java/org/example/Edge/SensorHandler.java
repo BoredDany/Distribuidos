@@ -14,7 +14,7 @@ public class SensorHandler implements Runnable{
     private Integer idSensor;
 
     private String archivoConfig;
-    private String ipSistemaCalidad;
+    private String ipSistemaCalidad = Ip.SC_EDGE;
     private String ipChecker = Ip.HEALTH_CHECKER;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
     private String ipProxy = Ip.PROXY_PRINCIPAL;
@@ -24,7 +24,6 @@ public class SensorHandler implements Runnable{
         this.tipoSensor = tipoSensor;
         this.archivoConfig = archivoConfig;
 
-        //TODO AGREGAR ARCHIVO DE CONFIGURACION COMO PARAMETRO
     }
 
     @Override
@@ -59,6 +58,10 @@ public class SensorHandler implements Runnable{
                 // Conectar socket a la ip y puerto de la central de sensores
                 socketAspersor.connect("tcp://" + ipCentralSensor + ":" + Ip.PORT_SENSOR_ASPERSOR);
 
+                // Crear socket de comunicación sistema de calidad (REQUEST)
+                ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
+                socketSistemaCalidad.connect("tcp://" + ipSistemaCalidad + ":" + Ip.PORT_SC_EDGE);
+
                 try {
                     while (true){
                         // Generar medición
@@ -69,10 +72,10 @@ public class SensorHandler implements Runnable{
                         String hora = now.getHour() + ":" + now.getMinute() + ":" + now.getSecond();
 
                         // Construir mensaje de medición
-                        Medicion medicionMensje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion), sensor.correcta(medicion));
+                        Medicion medicionMensaje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion), sensor.correcta(medicion));
 
                         // Mostrar información a enviar
-                        System.out.println("Envío medicion a:" + ipProxy + " - " + medicionMensje.medicionStr());
+                        System.out.println("Envío medicion a:" + ipProxy + " - " + medicionMensaje.medicionStr());
 
                         if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
                             if(medicion < 0.0) {
@@ -81,9 +84,15 @@ public class SensorHandler implements Runnable{
                                 dentroRango++;
                                 //activar aspersor en señal de humo
                                 if(medicion == sensor.getLimiteSuperior()){
-                                    socketAspersor.send(medicionMensje.medicionStr());
-                                    byte[] response = socketAspersor.recv(0);
-                                    System.out.println("Recibo del aspersor: " + new String(response, ZMQ.CHARSET));
+                                    socketAspersor.send(medicionMensaje.medicionStr());
+                                    byte[] responseAspersor = socketAspersor.recv(0);
+                                    System.out.println("Recibo del aspersor: " + new String(responseAspersor, ZMQ.CHARSET));
+
+                                    // Enviar alerta a sistema de calidad con Request-Reply
+                                    socketSistemaCalidad.send(medicionMensaje.medicionStr());
+                                    byte[] responseSC = socketSistemaCalidad.recv(0);
+                                    System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
+
                                 }
                                 //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
                             }else if (medicion > sensor.getLimiteSuperior()){
@@ -100,7 +109,7 @@ public class SensorHandler implements Runnable{
                         }
 
                         // Enviar medición al proxy
-                        socketMedicion.send(medicionMensje.toJson());
+                        socketMedicion.send(medicionMensaje.toJson());
 
                         // Esperar para la siguiente medición (opcional)
                         Thread.sleep(sensor.getIntervalo() * 1000);
