@@ -1,17 +1,8 @@
-package org.example.Edge.Cloud;
+package org.example.Cloud;
 
-import org.example.Fog.Proxy;
-import org.example.Fog.ProxyHandler;
 import org.example.utils.Ip;
-import org.example.utils.Medicion;
-import org.example.utils.TipoSensor;
-import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CentralCloud {
     public static void main(String[] args) throws Exception {

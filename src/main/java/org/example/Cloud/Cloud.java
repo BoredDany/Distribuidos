@@ -1,4 +1,4 @@
-package org.example.Edge.Cloud;
+package org.example.Cloud;
 
 public class Cloud {
     private String ip;

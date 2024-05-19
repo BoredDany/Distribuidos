@@ -12,14 +12,18 @@ import java.time.LocalTime;
 public class SensorHandler implements Runnable{
     private String tipoSensor;
     private Integer idSensor;
+
+    private String archivoConfig;
     private String ipSistemaCalidad;
     private String ipChecker = Ip.HEALTH_CHECKER;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
     private String ipProxy = Ip.PROXY_PRINCIPAL;
 
-    public SensorHandler(String tipoSensor, Integer id) {
+    public SensorHandler(String tipoSensor, Integer id, String archivoConfig) {
         this.idSensor = id;
         this.tipoSensor = tipoSensor;
+        this.archivoConfig = archivoConfig;
+
         //TODO AGREGAR ARCHIVO DE CONFIGURACION COMO PARAMETRO
     }
 

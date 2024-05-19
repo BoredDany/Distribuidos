@@ -12,13 +12,17 @@ public class CentralSensor {
         Thread[] threads = new Thread[numHilos];
         String[] tiposSensores = {TipoSensor.HUMO, TipoSensor.HUMEDAD, TipoSensor.TEMPERATURA};
         //String[] tiposSensores = {TipoSensor.TEMPERATURA};
+        String archivoConfig = "", tipo = "";
 
-        for (String tipo : tiposSensores) {
+        args[0] = tipo;
+        args[1] = archivoConfig;
+
+        //for (String tipo : tiposSensores) {
             for (int i = 0; i < 10; i++) {
-                threads[i] = new Thread(new SensorHandler(tipo, i));
+                threads[i] = new Thread(new SensorHandler(tipo, i, archivoConfig));
                 threads[i].start();
             }
-        }
+        //}
 
         /*
         //tipo, archivoConfig son argumentos del main
