@@ -57,6 +57,7 @@ public class Proxy {
     }
 
     public void start() {
+        
         // Crear y iniciar los handlers
         handlers.put(TipoSensor.TEMPERATURA, new ProxyHandler(TipoSensor.TEMPERATURA));
         handlers.put(TipoSensor.HUMEDAD, new ProxyHandler(TipoSensor.HUMEDAD));
@@ -68,17 +69,27 @@ public class Proxy {
             ZMQ.Socket socketMedicion = context.createSocket(SocketType.PULL);
             socketMedicion.bind("tcp://" + ip + ":" + Ip.PORT_SENSOR_PROXY);
 
+            // Crear socket de comunicación con cloud (REQUEST)
+            ZMQ.Socket socketCloud = context.createSocket(SocketType.REQ);
+            socketCloud.connect("tcp://" + ipCentralSensor + ":" + Ip.PORT_PROXY_CLOUD);
+
             while (true) {
                 try {
                     // Recibir un mensaje del sensor
                     String mensaje = socketMedicion.recvStr();
                     Medicion medicion = Medicion.fromJson(mensaje);
 
+                    //TODO Enviar todas las mediciones correctas y con alerta al cloud con request reply
+                    if(medicion.isAlerta() && medicion.isCorrecta()){
+                        socketCloud.send(medicion.toJson());
+                        byte[] response = socketCloud.recv(0);
+                        System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
+                    }
+
                     // Enviar la medición al handler correspondiente
                     ProxyHandler handler = handlers.get(medicion.getTipoSensor());
                     if (handler != null && medicion.isCorrecta()) {
                         handler.addMedicion(medicion);
-                        //TODO Enviar todas las mediciones correctas y con alerta al cloud con request reply
                     }
                 } catch (Exception e) {
                     System.out.println("Error al recibir mensaje: " + e.getMessage());

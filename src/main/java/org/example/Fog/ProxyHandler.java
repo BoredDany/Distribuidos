@@ -14,14 +14,22 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProxyHandler implements Runnable {
     private final String tipoSensor;
     private final List<Medicion> mediciones = new ArrayList<>();
+    private Medicion medicionRecibida = null;
+    private  Double promedioHumedad = 0.0;
+    private final ZContext context;
+    private final ZMQ.Socket socketCloud;
 
     public ProxyHandler(String tipoSensor) {
         this.tipoSensor = tipoSensor;
+        this.context = new ZContext();
+        this.socketCloud = context.createSocket(SocketType.REQ);
+        this.socketCloud.connect("tcp://" + Ip.PROXY_PRINCIPAL + ":" + Ip.PORT_PROXY_CLOUD);
     }
 
     public void addMedicion(Medicion medicion) {
         synchronized (mediciones) {
             mediciones.add(medicion);
+            this.medicionRecibida = medicion;
             if (mediciones.size() == 10) {
                 double promedio = mediciones.stream()
                         .mapToDouble(Medicion::getMedicion)
@@ -29,7 +37,31 @@ public class ProxyHandler implements Runnable {
                         .orElse(0.0);
                 System.out.println("Promedio -> " + medicion.getTipoSensor() + ": " + promedio);
                 // TODO Enviar el promedio de humedad y la alerta de temperatura a cloud con request reply
-                // TODO Alertar sistema de calidad si la temoeratura supera el valor permitido
+
+                if(this.tipoSensor.equals(TipoSensor.HUMEDAD)) {
+                    this.promedioHumedad = promedio;
+                }
+
+                try{
+                    // Enviar al cloud aquí
+                    if(this.medicionRecibida.getTipoSensor().equals(TipoSensor.TEMPERATURA)){
+                        if(promedio < TipoSensor.TEMPERATURA_INFERIOR || promedio > TipoSensor.TEMPERATURA_SUPERIOR){
+                            System.out.println("ALERTA TEMPERATURA PROMEDIO -> " + medicion.getTipoSensor() + ": " + promedio);
+                            socketCloud.send("ALERTA TEMPERATURA: " + promedio);
+                            String respuesta = socketCloud.recvStr();
+                            System.out.println("Respuesta del cloud: " + respuesta);
+                        }
+                    } else{
+                        // enviar promedio al cloud si es humedad
+                        socketCloud.send("PROMEDIO HUMEDAD: " + this.promedioHumedad);
+                        String respuesta = socketCloud.recvStr();
+                        System.out.println("Respuesta del cloud: " + respuesta);
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+
                 mediciones.clear();
             }
         }
@@ -39,4 +71,5 @@ public class ProxyHandler implements Runnable {
     public void run() {
 
     }
+
 }
