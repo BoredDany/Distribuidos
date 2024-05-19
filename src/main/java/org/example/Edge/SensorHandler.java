@@ -95,6 +95,8 @@ public class SensorHandler implements Runnable{
 
                                 }
                                 //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
+
+
                             }else if (medicion > sensor.getLimiteSuperior()){
                                 fueraRango++;
                             }
