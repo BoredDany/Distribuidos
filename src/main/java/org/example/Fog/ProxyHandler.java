@@ -1,5 +1,6 @@
 package org.example.Fog;
 
+import org.example.Edge.SensorHumedad;
 import org.example.utils.Ip;
 import org.example.utils.Medicion;
 import org.example.utils.TipoSensor;
@@ -63,7 +64,7 @@ public class ProxyHandler implements Runnable {
                         }
                     } else{
                         // enviar promedio al cloud si es humedad
-                        socketCloud.send("PROMEDIO HUMEDAD: " + this.promedioHumedad);
+                        socketCloud.send(new Medicion(TipoSensor.PROMEDIO_HUMEDAD, 0, this.promedioHumedad, "hora", true, true).toJson());
                         String respuesta = socketCloud.recvStr();
                         System.out.println("Respuesta del cloud: " + respuesta);
                     }
