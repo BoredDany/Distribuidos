@@ -94,7 +94,6 @@ public class SensorHandler implements Runnable{
                                     System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
 
                                 }
-                                //TODO ENVIAR SEÑAL A SISTEMA DE CALIDAD CON REQUEST REPLY
                             }else if (medicion > sensor.getLimiteSuperior()){
                                 fueraRango++;
                             }

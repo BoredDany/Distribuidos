@@ -4,14 +4,15 @@ import org.example.utils.Ip;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-public class SistemaCalidad {
+public class SistemaCalidad_Edge {
 
-    private String ipCentralSensores = Ip.CENTRAL_SENSOR;
+    private static String ipCentralSensores = Ip.CENTRAL_SENSOR;
+
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
             // Socket para comunicación con sensores de humo (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://" + Ip.CENTRAL_SENSOR + ":" + Ip.PORT_SC_EDGE);
+            socket.bind("tcp://" + ipCentralSensores + ":" + Ip.PORT_SC_EDGE);
 
             while (!Thread.currentThread().isInterrupted()) {
 

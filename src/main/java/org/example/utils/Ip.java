@@ -24,6 +24,9 @@ public class Ip {
     public static final String PORT_SENSOR_PROXY = "5555";
     public static final String PORT_PROXY_CLOUD = "5556";
     public static final String PORT_SC_EDGE = "5100";
+    public static final String PORT_SC_FOG = "5200";
+    public static final String PORT_SC_CLOUD = "5300";
+
 
 }
 
