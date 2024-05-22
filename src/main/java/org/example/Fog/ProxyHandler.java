@@ -19,15 +19,12 @@ public class ProxyHandler implements Runnable {
     private  Double promedioHumedad = 0.0;
     private final ZContext context;
     private final ZMQ.Socket socketCloud;
-    private final ZMQ.Socket socketSistemaCalidad;
 
     public ProxyHandler(String tipoSensor) {
         this.tipoSensor = tipoSensor;
         this.context = new ZContext();
         this.socketCloud = context.createSocket(SocketType.REQ);
         this.socketCloud.connect("tcp://" + Ip.PROXY_PRINCIPAL + ":" + Ip.PORT_PROXY_CLOUD);
-        this.socketSistemaCalidad = context.createSocket(SocketType.REQ);
-        this.socketSistemaCalidad.connect("tcp://" + Ip.PROXY_PRINCIPAL + ":" + Ip.PORT_SC_FOG);
     }
 
     public void addMedicion(Medicion medicion) {
@@ -53,11 +50,6 @@ public class ProxyHandler implements Runnable {
                             socketCloud.send("ALERTA TEMPERATURA: " + promedio);
                             String respuesta = socketCloud.recvStr();
                             System.out.println("Respuesta del cloud: " + respuesta);
-
-                            // Notificar al sistema de calidad
-                            socketSistemaCalidad.send(medicion.medicionStr());
-                            byte[] responseSC = socketSistemaCalidad.recv(0);
-                            System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
 
                         }
                     } else{

@@ -16,7 +16,7 @@ public class Proxy {
 
     private String ip = Ip.PROXY_PRINCIPAL;
     private Integer intervaloHumedad;
-    private String ipSistemaCalidad;
+    private String ipSistemaCalidad = Ip.SC_FOG;
     private String ipChecker;
     private String ipCentralSensor = Ip.CENTRAL_SENSOR;
     private String ipCloud = Ip.CENTRAL_SENSOR;
@@ -73,6 +73,9 @@ public class Proxy {
             ZMQ.Socket socketCloud = context.createSocket(SocketType.REQ);
             socketCloud.connect("tcp://" + ipCentralSensor + ":" + Ip.PORT_PROXY_CLOUD);
 
+            ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
+            socketSistemaCalidad.connect("tcp://" + ipSistemaCalidad + ":" + Ip.PORT_SC_FOG);
+
             while (true) {
                 try {
                     // Recibir un mensaje del sensor
@@ -84,6 +87,10 @@ public class Proxy {
                         socketCloud.send(medicion.toJson());
                         byte[] response = socketCloud.recv(0);
                         System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
+
+                        socketSistemaCalidad.send(medicion.medicionStr());
+                        byte[] responseSC = socketSistemaCalidad.recv(0);
+                        System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
                     }
 
                     // Enviar la medición al handler correspondiente
