@@ -1,6 +1,7 @@
 package org.example.Cloud;
 
 import org.example.utils.Ip;
+import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
@@ -17,11 +18,12 @@ public class CentralCloud {
         Cloud cloud = new Cloud(Ip.CLOUD, Ip.PROXY_PRINCIPAL, Ip.SC_CLOUD, 20);
         try (ZContext context = new ZContext()) {
             // Socket para comunicación con proxy (REPLY)
-            ZMQ.Socket socketCloud = context.createSocket(ZMQ.REP);
+            ZMQ.Socket socketCloud = context.createSocket(SocketType.REP);
             socketCloud.bind("tcp://" + cloud.getIpProxy() + ":" + Ip.PORT_PROXY_CLOUD);
 
             // Configurar el temporizador para calcular el promedio cada 20 segundos
             Timer timer = new Timer(true);
+
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
