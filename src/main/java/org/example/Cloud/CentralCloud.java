@@ -1,9 +1,13 @@
 package org.example.Cloud;
 
+import org.example.utils.Checkeo;
 import org.example.utils.Ip;
+import org.example.utils.Medicion;
+import org.example.utils.TipoSensor;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -16,23 +20,53 @@ public class CentralCloud {
     public static void main(String[] args) throws Exception {
         Cloud cloud = new Cloud(Ip.IP_CLOUD, Ip.IP_FOG, Ip.IP_CLOUD, 20);
         try (ZContext context = new ZContext()) {
-            //TODO TOLERANCIA A FALLAS DE PROXY
-            //Recibir ip del checker y revisar si es true o false
-
             // Socket para comunicación con proxy (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://" + cloud.getIp() + ":" + Ip.PORT_PROXY_CLOUD);
+            socket.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CLOUD);
+
+            // Socket para comunicación con cloud (REPLY)
+            ZMQ.Socket socketSistemaCalidad = context.createSocket(ZMQ.REQ);
+            socket.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_SC_CLOUD);
+
+            // Socket para comunicación con checker (REPLY)
+            /*ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
+            socketChecker.bind("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER);*/
 
             // Configurar el temporizador para calcular el promedio cada 20 segundos
             Timer timer = new Timer(true);
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    calcularPromedioHumedad();
+                    calcularPromedioHumedad(socketSistemaCalidad);
                 }
             }, 20000, 20000);
 
             while (!Thread.currentThread().isInterrupted()) {
+                /*//TODO RESISTENCIA A FALLOS
+                // Recibir mensaje del checker:
+                byte[] replyChecker = socketChecker.recv(0);
+                String jsonMessage = new String(replyChecker, ZMQ.CHARSET);
+                Checkeo checkeo = Checkeo.fromJson(jsonMessage);
+
+                // Si no funciona el proxy cambiar la ip
+                if(!checkeo.isWorks()){
+                    String anterior = Ip.IP_FOG;
+                    Ip.IP_FOG = Ip.IP_FOG_SECUNDARIO;
+                    Ip.IP_FOG_SECUNDARIO = anterior;
+                    checkeo.setIp(Ip.IP_FOG);
+
+                    // Conectar socket a la ip y puerto del proxy nuevo
+                    socket.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CLOUD);
+
+                    //TODO TERMINAR EL SISTEMA DE CALIDAD
+
+                }
+
+                System.out.println("ESTADO PROXY: " + checkeo.toString());
+                System.out.println("enviare rta a checker");
+                socketChecker.send(checkeo.toJson());
+                System.out.println("rta enviada");*/
+
                 // Bloqueo hasta que se reciba un mensaje
                 byte[] reply = socket.recv(0);
 
@@ -82,7 +116,7 @@ public class CentralCloud {
     }
 
     // Método para calcular el promedio de humedad
-    private static void calcularPromedioHumedad() {
+    private static void calcularPromedioHumedad(ZMQ.Socket socketSistemaCalidad) {
         double suma = 0.0;
         int cantidad = 0;
 
@@ -98,6 +132,22 @@ public class CentralCloud {
         if (cantidad > 0) {
             double promedio = suma / cantidad;
             System.out.println("HUMEDAD RELATIVA MENSUAL #" + (calculoNumero++) + ": " + promedio);
+            // Enviar alerta a sistemas de calidad
+            if(promedio < TipoSensor.HUMEDAD_INFERIOR || promedio > TipoSensor.HUMEDAD_SUPERIOR){
+
+                System.out.println("ALERTA HUMEDAD: " + promedio);
+
+                // Obtener la hora actual
+                LocalTime now = LocalTime.now();
+                String hora = now.getHour() + ":" + now.getMinute() + ":" + now.getSecond();
+
+                Medicion medicion = new Medicion(TipoSensor.ALERTA_HUMEDAD, 0, promedio, hora, true, true);
+
+                socketSistemaCalidad.send(medicion.toJson());
+                byte[] response = socketSistemaCalidad.recv(0);
+                System.out.println("Recibo del SC: " + new String(response, ZMQ.CHARSET));
+
+            }
         } else {
             System.out.println("HUMEDAD RELATIVA MENSUAL #" + (calculoNumero++) + ": No hay datos");
         }

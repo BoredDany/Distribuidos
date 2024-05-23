@@ -75,19 +75,19 @@ public class Proxy {
             socketCloud.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_PROXY_CLOUD);
 
             // Socket para comunicación con checker (REPLY)
-            ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
-            socketChecker.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CHECKER);
+            /*ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
+            socketChecker.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CHECKER);*/
 
 
             while (true) {
                 try {
-                    //TODO MANEJO DE FALLAS PROXY
+                    /*//TODO MANEJO DE FALLAS PROXY
                     //Reportarse con checker
                     byte[] reply = socketChecker.recv(0);
                     String jsonMessage = new String(reply, ZMQ.CHARSET);
                     Checkeo checkeo = Checkeo.fromJson(jsonMessage);
                     System.out.println("Confirmo funcionamiento: " + checkeo.toString());
-                    socketChecker.send(checkeo.toJson());
+                    socketChecker.send(checkeo.toJson());*/
 
                     // Recibir un mensaje del sensor
                     String mensaje = socketMedicion.recvStr();

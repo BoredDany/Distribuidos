@@ -19,12 +19,12 @@ public class HealthChecker {
             socketProxy.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CHECKER);
 
             // Socket para comunicación con cloud (REPLY)
-            ZMQ.Socket socketCloud = context.createSocket(ZMQ.REQ);
-            socketCloud.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER);
+            /*ZMQ.Socket socketCloud = context.createSocket(ZMQ.REQ);
+            socketCloud.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER);*/
 
-            // Socket para comunicación con edge (REPLY)
+            /*// Socket para comunicación con edge (REPLY)
             ZMQ.Socket socketEdge = context.createSocket(ZMQ.REQ);
-            socketEdge.connect("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER);
+            socketEdge.connect("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER);*/
 
             while (!Thread.currentThread().isInterrupted()) {
                 // Enviar checkeo a proxy
@@ -38,7 +38,7 @@ public class HealthChecker {
                 System.out.println("Recibo del proxy: " + new String(responseProxy, ZMQ.CHARSET));
 
                 //Si no responde el proxy cambiarlo
-                boolean noSirve = true;
+                boolean noSirve = false;
                 if(noSirve){
                     //Cambiar proxy
                     String anterior = Ip.IP_FOG;
@@ -50,15 +50,16 @@ public class HealthChecker {
                 }
 
                 // Enviar mensaje a cloud
-                socketCloud.send(check.toJson());
+                /*socketCloud.send(check.toJson());
                 byte[] responseCloud = socketCloud.recv(0);
-                System.out.println("CLOUD RECIBIO: " + new String(responseCloud, ZMQ.CHARSET));
+                System.out.println("CLOUD RECIBIO: " + new String(responseCloud, ZMQ.CHARSET));*/
 
-                // Enviar mensaje a central sensor para cambiar de proxy
+                /*// Enviar mensaje a central sensor para cambiar de proxy
                 socketEdge.send(check.toJson());
                 byte[] responseEdge = socketEdge.recv(0);
-                System.out.println("EDGE RECIBIO: " + new String(responseEdge, ZMQ.CHARSET));
+                System.out.println("EDGE RECIBIO: " + new String(responseEdge, ZMQ.CHARSET));*/
 
+                //Thread.sleep(1000);
             }
         } catch (Exception e) {
             e.printStackTrace();

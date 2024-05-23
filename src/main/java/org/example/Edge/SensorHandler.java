@@ -1,5 +1,6 @@
 package org.example.Edge;
 
+import org.example.utils.Checkeo;
 import org.example.utils.Ip;
 import org.example.utils.Medicion;
 import org.example.utils.TipoSensor;
@@ -58,8 +59,34 @@ public class SensorHandler implements Runnable{
                 ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
                 socketSistemaCalidad.connect("tcp://" +  Ip.IP_EDGE + ":" + Ip.PORT_SC_EDGE);
 
+                /*// Socket para comunicación con checker (REPLY)
+                ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
+                socketChecker.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER);*/
+
+
                 try {
                     while (true){
+                        //TODO RESISTENCIA A FALLOS
+                        // Recibir mensaje del checker:
+                        /*byte[] reply = socketChecker.recv(0);
+                        String jsonMessage = new String(reply, ZMQ.CHARSET);
+                        Checkeo checkeo = Checkeo.fromJson(jsonMessage);
+
+                        // Si no funciona el proxy cambiar la ip
+                        if(!checkeo.isWorks()){
+                            String anterior = Ip.IP_FOG;
+                            Ip.IP_FOG = Ip.IP_FOG_SECUNDARIO;
+                            Ip.IP_FOG_SECUNDARIO = anterior;
+                            checkeo.setIp(Ip.IP_FOG);
+
+                            // Conectar socket a la ip y puerto del proxy nuevo
+                            socketMedicion.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_SENSOR_PROXY);
+
+                        }
+
+                        System.out.println("ESTADO PROXY: " + checkeo.toString());
+                        socketChecker.send(checkeo.toJson());*/
+
                         // Generar medición
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
 
@@ -115,7 +142,7 @@ public class SensorHandler implements Runnable{
                 } catch (Exception e){
                     System.out.println("Error al medir: " + e.getMessage());
                     socketMedicion.close();
-                    socketAspersor.close();
+                    //socketAspersor.close();
                 }
             } catch (Exception e){
                 System.out.println("Error creando contexto ZMQ: " + e.getMessage());

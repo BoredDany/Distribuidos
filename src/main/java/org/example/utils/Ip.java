@@ -6,11 +6,11 @@ public class Ip {
     public static final String dani = "10.43.100.223";
 
     //EDGE
-    public static final String IP_EDGE = nico;
+    public static final String IP_EDGE = dani;
 
 
     //FOG, HEALTHCKECKER Y CLOUD
-    public static String IP_FOG = nico;
+    public static String IP_FOG = dani;
     public static final String IP_CLOUD = dani;
 
     //FOG SECUNDARIO
