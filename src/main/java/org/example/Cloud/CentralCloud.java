@@ -16,6 +16,9 @@ public class CentralCloud {
     public static void main(String[] args) throws Exception {
         Cloud cloud = new Cloud(Ip.IP_CLOUD, Ip.IP_FOG, Ip.IP_CLOUD, 20);
         try (ZContext context = new ZContext()) {
+            //TODO TOLERANCIA A FALLAS DE PROXY
+            //Recibir ip del checker y revisar si es true o false
+
             // Socket para comunicación con proxy (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
             socket.bind("tcp://" + cloud.getIp() + ":" + Ip.PORT_PROXY_CLOUD);

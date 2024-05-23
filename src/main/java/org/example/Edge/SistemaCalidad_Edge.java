@@ -9,6 +9,9 @@ public class SistemaCalidad_Edge {
 
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
+            //TODO TOLERANCIA A FALLAS DE PROXY
+            //Recibir ip del checker y revisar si es true o false para terminar o no el proceso
+
             // Socket para comunicación con sensores de humo (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
             socket.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_SC_EDGE);

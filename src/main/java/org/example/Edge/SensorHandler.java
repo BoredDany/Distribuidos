@@ -103,6 +103,9 @@ public class SensorHandler implements Runnable{
                             }
                         }
 
+                        //TODO TOLERANCIA A FALLAS DE PROXY
+                        //Recibir ip del checker y revisar si es true o false
+
                         // Enviar medición al proxy
                         socketMedicion.send(medicionMensaje.toJson());
 

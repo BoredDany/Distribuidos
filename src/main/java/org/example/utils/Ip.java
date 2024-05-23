@@ -10,11 +10,11 @@ public class Ip {
 
 
     //FOG, HEALTHCKECKER Y CLOUD
-    public static final String IP_FOG = nico;
+    public static String IP_FOG = nico;
     public static final String IP_CLOUD = dani;
 
     //FOG SECUNDARIO
-    public static final String IP_FOG_SECUNDARIO = dani;
+    public static String IP_FOG_SECUNDARIO = dani;
 
     //PORTS
     public static final String PORT_SENSOR_ASPERSOR = "5000";
@@ -22,6 +22,9 @@ public class Ip {
     public static final String PORT_SENSOR_PROXY = "5555";
 
     public static final String PORT_PROXY_CLOUD = "5500";
+    public static final String PORT_PROXY_CHECKER = "5556";
+    public static final String PORT_CLOUD_CHECKER = "5400";
+    public static final String PORT_EDGE_CHECKER = "5600";
     public static final String PORT_SC_FOG = "5200";
     public static final String PORT_SC_CLOUD = "5300";
 

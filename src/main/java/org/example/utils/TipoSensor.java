@@ -8,6 +8,7 @@ public class TipoSensor {
     public static final String ALERTA_HUMO = "alerta_humo";
     public static final String ALERTA_TEMPERATURA = "alerta_temperatura";
     public static final String ALERTA_HUMEDAD = "alerta_humedad";
+    public static final String CHECKEO = "alerta_humedad";
 
     public static final String CONFIGHUMO = "src/main/java/org/example/Edge/files/humoConfig.txt";
     public static final String CONFIGHUMEDAD = "src/main/java/org/example/Edge/files/humedadConfig.txt";
