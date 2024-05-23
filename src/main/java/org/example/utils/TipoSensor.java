@@ -16,7 +16,7 @@ public class TipoSensor {
 
     public static final Double TEMPERATURA_SUPERIOR = 29.4;
     public static final Double TEMPERATURA_INFERIOR = 11.0;
-    public static final Double HUMEDAD_SUPERIOR = 70.0;
-    public static final Double HUMEDAD_INFERIOR = 100.0;
+    public static final Double HUMEDAD_SUPERIOR = 100.0;
+    public static final Double HUMEDAD_INFERIOR = 70.0;
 
 }
