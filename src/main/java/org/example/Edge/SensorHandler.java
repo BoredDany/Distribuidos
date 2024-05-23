@@ -14,10 +14,6 @@ public class SensorHandler implements Runnable{
     private Integer idSensor;
 
     private String archivoConfig;
-    private String ipSistemaCalidad = Ip.SC_EDGE;
-    private String ipChecker = Ip.HEALTH_CHECKER;
-    private String ipCentralSensor = Ip.CENTRAL_SENSOR;
-    private String ipProxy = Ip.PROXY_PRINCIPAL;
 
     public SensorHandler(String tipoSensor, Integer id, String archivoConfig) {
         this.idSensor = id;
@@ -51,16 +47,16 @@ public class SensorHandler implements Runnable{
                 // Crear socket de envío de mediciones (PUSH)
                 ZMQ.Socket socketMedicion = context.createSocket(SocketType.PUSH);
                 // Conectar socket a la ip y puerto del proxy
-                socketMedicion.connect("tcp://" + ipProxy + ":" + Ip.PORT_SENSOR_PROXY);
+                socketMedicion.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_SENSOR_PROXY);
 
                 // Crear socket de comunicación aspersor (REQUEST)
                 ZMQ.Socket socketAspersor = context.createSocket(SocketType.REQ);
                 // Conectar socket a la ip y puerto de la central de sensores
-                socketAspersor.connect("tcp://" + ipCentralSensor + ":" + Ip.PORT_SENSOR_ASPERSOR);
+                socketAspersor.connect("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_SENSOR_ASPERSOR);
 
                 // Crear socket de comunicación sistema de calidad (REQUEST)
                 ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
-                socketSistemaCalidad.connect("tcp://" + ipSistemaCalidad + ":" + Ip.PORT_SC_EDGE);
+                socketSistemaCalidad.connect("tcp://" +  Ip.IP_EDGE + ":" + Ip.PORT_SC_EDGE);
 
                 try {
                     while (true){
@@ -75,7 +71,7 @@ public class SensorHandler implements Runnable{
                         Medicion medicionMensaje = new Medicion(sensor.getTipoSensor(), sensor.getId(), medicion, hora, sensor.alerta(medicion), sensor.correcta(medicion));
 
                         // Mostrar información a enviar
-                        System.out.println("Envío medicion a:" + ipProxy + " - " + medicionMensaje.medicionStr());
+                        System.out.println("Envío medicion a:" + Ip.IP_FOG + " - " + medicionMensaje.medicionStr());
 
                         if(sensor.getTipoSensor().equals(TipoSensor.HUMO)){
                             if(medicion < 0.0) {

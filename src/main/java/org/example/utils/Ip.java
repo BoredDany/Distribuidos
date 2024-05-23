@@ -1,6 +1,27 @@
 package org.example.utils;
 
 public class Ip {
+    //EDGE
+    public static final String IP_EDGE = "localhost";
+
+    //FOG, HEALTHCKECKER Y CLOUD
+    public static final String IP_FOG = "localhost";
+    public static final String IP_CLOUD = "localhost";
+
+    //FOG SECUNDARIO
+    public static final String IP_FOG_SECUNDARIO = "localhost";
+
+    //PORTS
+    public static final String PORT_SENSOR_ASPERSOR = "5000";
+    public static final String PORT_SC_EDGE = "5100";
+    public static final String PORT_SENSOR_PROXY = "5555";
+
+    public static final String PORT_PROXY_CLOUD = "5556";
+    public static final String PORT_SC_FOG = "5200";
+    public static final String PORT_SC_CLOUD = "5300";
+
+    /*
+
     //SENSORES
     public static final String CENTRAL_SENSOR = "localhost";
 
@@ -19,6 +40,7 @@ public class Ip {
     //CLOUD
     public static final String CLOUD = "localhost";
 
+
     //PORTS
     public static final String PORT_SENSOR_ASPERSOR = "5000";
     public static final String PORT_SENSOR_PROXY = "5555";
@@ -26,7 +48,7 @@ public class Ip {
     public static final String PORT_SC_EDGE = "5100";
     public static final String PORT_SC_FOG = "5200";
     public static final String PORT_SC_CLOUD = "5300";
-
+    */
 
 }
 

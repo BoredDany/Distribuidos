@@ -5,13 +5,12 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 public class Aspersor {
-    private String ipCentralSensores = Ip.CENTRAL_SENSOR;
 
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
             // Socket para comunicación con sensores de humo (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://" + Ip.CENTRAL_SENSOR + ":" + Ip.PORT_SENSOR_ASPERSOR);
+            socket.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_SENSOR_ASPERSOR);
 
             while (!Thread.currentThread().isInterrupted()) {
                 // Bloqueo hasta que se reciba un mensaje

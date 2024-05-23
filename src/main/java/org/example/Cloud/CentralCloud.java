@@ -14,7 +14,7 @@ public class CentralCloud {
     private static int calculoNumero = 1;
 
     public static void main(String[] args) throws Exception {
-        Cloud cloud = new Cloud(Ip.CLOUD, Ip.PROXY_PRINCIPAL, Ip.SC_CLOUD, 20);
+        Cloud cloud = new Cloud(Ip.IP_CLOUD, Ip.IP_FOG, Ip.IP_CLOUD, 20);
         try (ZContext context = new ZContext()) {
             // Socket para comunicación con proxy (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);

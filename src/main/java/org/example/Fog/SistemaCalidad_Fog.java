@@ -6,12 +6,11 @@ import org.zeromq.ZMQ;
 
 public class SistemaCalidad_Fog {
 
-    private static String ipProxy = Ip.PROXY_PRINCIPAL;
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
-            // Socket para comunicación con sensores de humo (REPLY)
+            // Socket para comunicación con proxy (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://" + ipProxy + ":" + Ip.PORT_SC_FOG);
+            socket.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_SC_FOG);
 
             while (!Thread.currentThread().isInterrupted()) {
 

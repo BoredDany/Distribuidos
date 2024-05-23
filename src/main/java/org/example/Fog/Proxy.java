@@ -14,12 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Proxy {
 
-    private String ip = Ip.PROXY_PRINCIPAL;
+    private String ip;
     private Integer intervaloHumedad;
-    private String ipSistemaCalidad = Ip.SC_FOG;
+    private String ipSistemaCalidad;
     private String ipChecker;
-    private String ipCentralSensor = Ip.CENTRAL_SENSOR;
-    private String ipCloud = Ip.CENTRAL_SENSOR;
+    private String ipCentralSensor;
+    private String ipCloud;
     private final ConcurrentHashMap<String, ProxyHandler> handlers = new ConcurrentHashMap<>();
 
 
@@ -71,10 +71,10 @@ public class Proxy {
 
             // Crear socket de comunicación con cloud (REQUEST)
             ZMQ.Socket socketCloud = context.createSocket(SocketType.REQ);
-            socketCloud.connect("tcp://" + ipCentralSensor + ":" + Ip.PORT_PROXY_CLOUD);
+            socketCloud.connect("tcp://" + ipCloud + ":" + Ip.PORT_PROXY_CLOUD);
 
-            ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
-            socketSistemaCalidad.connect("tcp://" + ipSistemaCalidad + ":" + Ip.PORT_SC_FOG);
+            /*ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
+            socketSistemaCalidad.connect("tcp://" + ipSistemaCalidad + ":" + Ip.PORT_SC_FOG);*/
 
             while (true) {
                 try {
@@ -88,9 +88,9 @@ public class Proxy {
                         byte[] response = socketCloud.recv(0);
                         System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
 
-                        socketSistemaCalidad.send(medicion.medicionStr());
+                        /*socketSistemaCalidad.send(medicion.medicionStr());
                         byte[] responseSC = socketSistemaCalidad.recv(0);
-                        System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
+                        System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));*/
                     }
 
                     // Enviar la medición al handler correspondiente

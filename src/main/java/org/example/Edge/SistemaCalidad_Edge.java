@@ -6,13 +6,12 @@ import org.zeromq.ZMQ;
 
 public class SistemaCalidad_Edge {
 
-    private static String ipCentralSensores = Ip.CENTRAL_SENSOR;
 
     public static void main(String[] args) {
         try (ZContext context = new ZContext()) {
             // Socket para comunicación con sensores de humo (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://" + ipCentralSensores + ":" + Ip.PORT_SC_EDGE);
+            socket.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_SC_EDGE);
 
             while (!Thread.currentThread().isInterrupted()) {
 
