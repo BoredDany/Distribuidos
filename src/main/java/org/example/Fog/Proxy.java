@@ -10,6 +10,8 @@ import org.zeromq.ZMQ;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -74,27 +76,40 @@ public class Proxy {
             ZMQ.Socket socketCloud = context.createSocket(SocketType.REQ);
             socketCloud.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_PROXY_CLOUD);
 
-            // Socket para comunicación con checker (REPLY)
-            /*ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
-            socketChecker.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CHECKER);*/
+
+            // Crear un hilo para manejar las solicitudes del HealthChecker
+            new Thread(() -> {
+                try (ZContext context2 = new ZContext()) {
+                    // Crear un socket para comunicarse con CHECKER
+                    ZMQ.Socket socketChecker = context2.createSocket(ZMQ.REP);
+                    socketChecker.bind("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_PROXY_CHECKER);
+
+                    while (true) {
+                        // Esperar una solicitud del HealthChecker
+                        byte[] request = socketChecker.recv(0);
+                        if (request != null) {
+                            // Si se recibe una solicitud, enviar una respuesta
+                            String response = "PROXY OK: " + Ip.IP_FOG;
+                            socketChecker.send(response.getBytes(ZMQ.CHARSET), 0);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error handling HealthChecker requests: " + e.getMessage());
+                }
+            }).start();
 
 
             while (true) {
                 try {
-                    /*//TODO MANEJO DE FALLAS PROXY
-                    //Reportarse con checker
-                    byte[] reply = socketChecker.recv(0);
-                    String jsonMessage = new String(reply, ZMQ.CHARSET);
-                    Checkeo checkeo = Checkeo.fromJson(jsonMessage);
-                    System.out.println("Confirmo funcionamiento: " + checkeo.toString());
-                    socketChecker.send(checkeo.toJson());*/
 
                     // Recibir un mensaje del sensor
                     String mensaje = socketMedicion.recvStr();
                     Medicion medicion = Medicion.fromJson(mensaje);
 
                     if(medicion.isAlerta() && medicion.isCorrecta()){
+
                         socketCloud.send(medicion.toJson());
+                        System.out.println("ENVIO: " + medicion.medicionStr());
                         byte[] response = socketCloud.recv(0);
                         System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
 

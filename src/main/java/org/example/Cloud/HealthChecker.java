@@ -14,53 +14,59 @@ import java.util.TimerTask;
 public class HealthChecker {
     public static void main(String[] args) throws Exception {
         try (ZContext context = new ZContext()) {
-            // Socket para comunicación con proxy (REPLY)
+            // Crear un socket para recibir mensajes de PROXY
             ZMQ.Socket socketProxy = context.createSocket(ZMQ.REQ);
-            socketProxy.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CHECKER);
+            socketProxy.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_PROXY_CHECKER);
+            // Establecer timeout de 3 segundos para recibir respuesta
+            socketProxy.setReceiveTimeOut(3000);
 
-            // Socket para comunicación con cloud (REPLY)
-            /*ZMQ.Socket socketCloud = context.createSocket(ZMQ.REQ);
-            socketCloud.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER);*/
+            //TODO MANEJAR LOS DIFERENTES PROCESOS DE SENSORES
+            // Socket para comunicación con edge (PUB)
+            ZMQ.Socket publisher = context.createSocket(ZMQ.PUB);
+            publisher.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER_HUMO);
 
-            /*// Socket para comunicación con edge (REPLY)
-            ZMQ.Socket socketEdge = context.createSocket(ZMQ.REQ);
-            socketEdge.connect("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER);*/
+            // Socket para comunicación con cloud (PUB)
+            ZMQ.Socket publisherCloud = context.createSocket(ZMQ.PUB);
+            publisherCloud.bind("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER);
 
-            while (!Thread.currentThread().isInterrupted()) {
-                // Enviar checkeo a proxy
-                Checkeo check = new Checkeo(Ip.IP_FOG, true);
-                socketProxy.send(check.toJson());
+            while (true) {
+                // Enviar una solicitud al Proxy
+                String request = "CHECK";
+                socketProxy.send(request.getBytes(ZMQ.CHARSET), 0);
 
-                //TODO MANEJAR CAIDA DEL PROXY
-                //Esperar respuesta (timeout)
+                // Intentar recibir una respuesta del Proxy
+                byte[] response = socketProxy.recv(0);
+                if (response == null) {
+                    // Si no se recibe ninguna respuesta en 3 segundos, imprimir un mensaje
+                    System.out.println("ALERT: No response received from Proxy within 3 seconds.");
 
-                byte[] responseProxy = socketProxy.recv(0);
-                System.out.println("Recibo del proxy: " + new String(responseProxy, ZMQ.CHARSET));
-
-                //Si no responde el proxy cambiarlo
-                boolean noSirve = false;
-                if(noSirve){
-                    //Cambiar proxy
+                    // Cambiar ip del proxy
                     String anterior = Ip.IP_FOG;
                     Ip.IP_FOG = Ip.IP_FOG_SECUNDARIO;
                     Ip.IP_FOG_SECUNDARIO = anterior;
+                    Checkeo checkeo = new Checkeo(Ip.IP_FOG, false);
 
-                    check.setIp(Ip.IP_FOG);
-                    check.setWorks(false);
+                    publisherCloud.send(checkeo.toJson());
+                    System.out.println("ENVIE AL CLOUD PUB++++++");
+
+                    // Enviar un mensaje al edge con la nueva IP del proxy
+                    publisher.send(checkeo.toJson());
+                    System.out.println("ENVIE AL EDGE PUB++++++");
+
+                    // Close and reopen the socket to reset its state
+                    socketProxy.close();
+                    socketProxy = context.createSocket(ZMQ.REQ);
+                    socketProxy.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_PROXY_CHECKER);
+                    socketProxy.setReceiveTimeOut(3000); // Set the receive timeout on the new socket
+                } else {
+                    // Si se recibe una respuesta, imprimir la respuesta
+                    System.out.println("Response from Proxy: " + new String(response, ZMQ.CHARSET));
                 }
 
-                // Enviar mensaje a cloud
-                /*socketCloud.send(check.toJson());
-                byte[] responseCloud = socketCloud.recv(0);
-                System.out.println("CLOUD RECIBIO: " + new String(responseCloud, ZMQ.CHARSET));*/
-
-                /*// Enviar mensaje a central sensor para cambiar de proxy
-                socketEdge.send(check.toJson());
-                byte[] responseEdge = socketEdge.recv(0);
-                System.out.println("EDGE RECIBIO: " + new String(responseEdge, ZMQ.CHARSET));*/
-
-                //Thread.sleep(1000);
+                // Esperar 2 segundos antes de enviar la próxima solicitud
+                Thread.sleep(2000);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

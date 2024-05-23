@@ -13,14 +13,14 @@ import java.time.LocalTime;
 public class SensorHandler implements Runnable{
     private String tipoSensor;
     private Integer idSensor;
-
     private String archivoConfig;
+    private String portChecker;
 
     public SensorHandler(String tipoSensor, Integer id, String archivoConfig) {
         this.idSensor = id;
         this.tipoSensor = tipoSensor;
         this.archivoConfig = archivoConfig;
-
+        this.portChecker = "";
     }
 
     @Override
@@ -33,10 +33,13 @@ public class SensorHandler implements Runnable{
         if(tipoSensor.equals(TipoSensor.HUMEDAD)){
             //enviar al constructor el archivo de config recibido en los argumentos del main
             sensor = new SensorHumedad(idSensor, tipoSensor, archivoConfig);
+            this.portChecker = Ip.PORT_EDGE_CHECKER_HUMEDAD;
         }else if(tipoSensor.equals(TipoSensor.HUMO)){
             sensor = new SensorHumo(idSensor, tipoSensor, archivoConfig);
+            this.portChecker = Ip.PORT_EDGE_CHECKER_HUMO;
         }else if(tipoSensor.equals(TipoSensor.TEMPERATURA)){
             sensor = new SensorTemperatura(idSensor, tipoSensor, archivoConfig);
+            this.portChecker = Ip.PORT_EDGE_CHECKER_TEMPERATURA;
         }
 
         if (sensor != null) {
@@ -59,33 +62,35 @@ public class SensorHandler implements Runnable{
                 ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
                 socketSistemaCalidad.connect("tcp://" +  Ip.IP_EDGE + ":" + Ip.PORT_SC_EDGE);
 
-                /*// Socket para comunicación con checker (REPLY)
-                ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
-                socketChecker.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER);*/
+                //TODO MANEJAR DISTINTOS PROCESOS PARA CADA SENSOR
+                // Socket de comunicacion con checker (SUB)
+                ZMQ.Socket subscriber = context.createSocket(ZMQ.SUB);
+                subscriber.connect("tcp://" +  Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER_HUMO); // Cambia esto a la dirección y puerto que usaste en el HealthChecker
+                subscriber.subscribe(ZMQ.SUBSCRIPTION_ALL);
 
 
                 try {
                     while (true){
-                        //TODO RESISTENCIA A FALLOS
-                        // Recibir mensaje del checker:
-                        /*byte[] reply = socketChecker.recv(0);
-                        String jsonMessage = new String(reply, ZMQ.CHARSET);
-                        Checkeo checkeo = Checkeo.fromJson(jsonMessage);
 
-                        // Si no funciona el proxy cambiar la ip
-                        if(!checkeo.isWorks()){
-                            String anterior = Ip.IP_FOG;
-                            Ip.IP_FOG = Ip.IP_FOG_SECUNDARIO;
-                            Ip.IP_FOG_SECUNDARIO = anterior;
-                            checkeo.setIp(Ip.IP_FOG);
+                        //Recibir mensajes del checker
+                        String message = subscriber.recvStr(ZMQ.DONTWAIT);
+                        if (message != null) {
+                            Checkeo checkeo = Checkeo.fromJson(message); // Asume que tienes un método para convertir de JSON a Checkeo
+                            Ip.IP_FOG = checkeo.getIp(); // Actualiza la IP del proxy
+                            System.out.println("CAMBIO IP: " + checkeo.getIp());
+                            System.out.println("+++++++++++++++++++++++++" +
+                                    "++++++++++++++++++++++++++++++ " + checkeo.getIp());
 
-                            // Conectar socket a la ip y puerto del proxy nuevo
+                            // Cerrar el socket existente
+                            socketMedicion.close();
+
+                            // Crear un nuevo socket con la nueva dirección IP
+                            socketMedicion = context.createSocket(SocketType.PUSH);
                             socketMedicion.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_SENSOR_PROXY);
 
+                        } else {
+                            // No hay mensajes disponibles, puedes hacer algo más aquí si lo deseas
                         }
-
-                        System.out.println("ESTADO PROXY: " + checkeo.toString());
-                        socketChecker.send(checkeo.toJson());*/
 
                         // Generar medición
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);

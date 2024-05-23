@@ -4,6 +4,7 @@ import org.example.utils.Checkeo;
 import org.example.utils.Ip;
 import org.example.utils.Medicion;
 import org.example.utils.TipoSensor;
+import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
@@ -23,14 +24,21 @@ public class CentralCloud {
             // Socket para comunicación con proxy (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
             socket.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CLOUD);
+            socket.setReceiveTimeOut(3000);
 
-            // Socket para comunicación con cloud (REPLY)
+            // Socket para comunicación con sistema de calidad (REQUEST)
             ZMQ.Socket socketSistemaCalidad = context.createSocket(ZMQ.REQ);
-            socket.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_SC_CLOUD);
+            socketSistemaCalidad.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_SC_CLOUD);
 
-            // Socket para comunicación con checker (REPLY)
-            /*ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
-            socketChecker.bind("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER);*/
+            // Socket de comunicacion con checker (SUB)
+            ZMQ.Socket subscriber = context.createSocket(ZMQ.SUB);
+            subscriber.connect("tcp://" +  Ip.IP_CLOUD + ":" + Ip.PORT_CLOUD_CHECKER); // Cambia esto a la dirección y puerto que usaste en el HealthChecker
+            subscriber.subscribe(ZMQ.SUBSCRIPTION_ALL);
+
+            // Crear un objeto Poller y registrar los sockets
+            ZMQ.Poller poller = context.createPoller(2);
+            poller.register(socket, ZMQ.Poller.POLLIN);
+            poller.register(subscriber, ZMQ.Poller.POLLIN);
 
             // Configurar el temporizador para calcular el promedio cada 20 segundos
             Timer timer = new Timer(true);
@@ -42,48 +50,67 @@ public class CentralCloud {
             }, 20000, 20000);
 
             while (!Thread.currentThread().isInterrupted()) {
-                /*//TODO RESISTENCIA A FALLOS
-                // Recibir mensaje del checker:
-                byte[] replyChecker = socketChecker.recv(0);
-                String jsonMessage = new String(replyChecker, ZMQ.CHARSET);
-                Checkeo checkeo = Checkeo.fromJson(jsonMessage);
 
-                // Si no funciona el proxy cambiar la ip
-                if(!checkeo.isWorks()){
-                    String anterior = Ip.IP_FOG;
-                    Ip.IP_FOG = Ip.IP_FOG_SECUNDARIO;
-                    Ip.IP_FOG_SECUNDARIO = anterior;
-                    checkeo.setIp(Ip.IP_FOG);
+                // Esperar hasta que se reciba un mensaje en cualquiera de los sockets, o hasta que transcurra un tiempo de espera
+                int pollResult = poller.poll(1000); // Tiempo de espera de 1000 ms
 
-                    // Conectar socket a la ip y puerto del proxy nuevo
-                    socket.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CLOUD);
-
-                    //TODO TERMINAR EL SISTEMA DE CALIDAD
-
+                if (pollResult == -1) {
+                    // Error en poll
+                    System.out.println("error poll");
+                    break;
                 }
 
-                System.out.println("ESTADO PROXY: " + checkeo.toString());
-                System.out.println("enviare rta a checker");
-                socketChecker.send(checkeo.toJson());
-                System.out.println("rta enviada");*/
-
-                // Bloqueo hasta que se reciba un mensaje
-                byte[] reply = socket.recv(0);
-
-                // Convertir el mensaje de byte array a String
-                String mensaje = new String(reply, ZMQ.CHARSET);
-                System.out.println("Received: [" + mensaje + "]");
-
-                // Procesar el mensaje como cadena
-                try {
-                    procesarMensaje(mensaje);
-                } catch (Exception e) {
-                    System.err.println("Error al procesar el mensaje: " + e.getMessage());
+                if (poller.pollin(0)) {
+                    //System.out.println("POLLIN PROXY");
+                    // Se recibió un mensaje en el socket REP
+                    if (socket.hasReceiveMore()) {
+                        byte[] reply = socket.recv(ZMQ.DONTWAIT);
+                        if (reply == null) {
+                            // No hay mensajes disponibles, puedes hacer algo más aquí si lo deseas
+                            continue;
+                        } else {
+                            // Procesar el mensaje recibido
+                            String mensaje = new String(reply, ZMQ.CHARSET);
+                            System.out.println("Received: [" + mensaje + "]");
+                            try {
+                                procesarMensaje(mensaje);
+                            } catch (Exception e) {
+                                System.err.println("Error al procesar el mensaje: " + e.getMessage());
+                            }
+                            // Responder al sensor
+                            String response = "Recibido en nube";
+                            socket.send(response.getBytes(ZMQ.CHARSET), 0);
+                        }
+                    }
                 }
 
-                // Responder a sensor
-                String response = "Recibido en nube";
-                socket.send(response.getBytes(ZMQ.CHARSET), 0);
+                if (poller.pollin(1)) {
+                    // Se recibió un mensaje en el socket SUB
+                    //Recibir mensajes del checker
+                    String message = subscriber.recvStr(ZMQ.DONTWAIT);
+                    if (message != null) {
+                        Checkeo checkeo = Checkeo.fromJson(message); // Asume que tienes un método para convertir de JSON a Checkeo
+                        Ip.IP_FOG = checkeo.getIp(); // Actualiza la IP del proxy
+                        System.out.println("CAMBIO IP: " + checkeo.getIp());
+                        System.out.println("+++++++++++++++++++++++++" +
+                                "++++++++++++++++++++++++++++++ " + checkeo.getIp());
+
+                        // Cerrar el socket existente
+                        // Desregistrar el socket REP del poller antes de cerrarlo
+                        poller.unregister(socket);
+                        socket.close();
+
+                        // Crear un nuevo socket con la nueva dirección IP
+                        socket = context.createSocket(SocketType.REP);
+                        socket.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CLOUD);
+                        socket.setReceiveTimeOut(3000);
+                        // Registrar el nuevo socket con el poller
+                        poller.register(socket, ZMQ.Poller.POLLIN);
+                    } else {
+                        // No hay mensajes disponibles, puedes hacer algo más aquí si lo deseas
+                    }
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
