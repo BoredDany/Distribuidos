@@ -18,7 +18,7 @@ public class CentralCloud {
         try (ZContext context = new ZContext()) {
             // Socket para comunicación con proxy (REPLY)
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-            socket.bind("tcp://" + cloud.getIpProxy() + ":" + Ip.PORT_PROXY_CLOUD);
+            socket.bind("tcp://" + cloud.getIp() + ":" + Ip.PORT_PROXY_CLOUD);
 
             // Configurar el temporizador para calcular el promedio cada 20 segundos
             Timer timer = new Timer(true);

@@ -67,11 +67,11 @@ public class Proxy {
         try (ZContext context = new ZContext()) {
             // Crear socket para recibir mediciones (PULL)
             ZMQ.Socket socketMedicion = context.createSocket(SocketType.PULL);
-            socketMedicion.bind("tcp://" + ip + ":" + Ip.PORT_SENSOR_PROXY);
+            socketMedicion.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_SENSOR_PROXY);
 
             // Crear socket de comunicación con cloud (REQUEST)
             ZMQ.Socket socketCloud = context.createSocket(SocketType.REQ);
-            socketCloud.connect("tcp://" + ipCloud + ":" + Ip.PORT_PROXY_CLOUD);
+            socketCloud.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_PROXY_CLOUD);
 
             /*ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
             socketSistemaCalidad.connect("tcp://" + ipSistemaCalidad + ":" + Ip.PORT_SC_FOG);*/
@@ -88,9 +88,6 @@ public class Proxy {
                         byte[] response = socketCloud.recv(0);
                         System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
 
-                        /*socketSistemaCalidad.send(medicion.medicionStr());
-                        byte[] responseSC = socketSistemaCalidad.recv(0);
-                        System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));*/
                     }
 
                     // Enviar la medición al handler correspondiente
