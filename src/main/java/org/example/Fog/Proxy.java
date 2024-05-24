@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.Math.round;
+import static java.lang.Math.sqrt;
 
 public class Proxy {
 
@@ -22,8 +24,12 @@ public class Proxy {
     private String ipCentralSensor;
     private String ipCloud;
     private final ConcurrentHashMap<String, ProxyHandler> handlers = new ConcurrentHashMap<>();
+    private static int cantidadMensajes = 0;
 
-
+    private static final List<Long> promedioTiempoComunicacion = new ArrayList<>();
+    private long promedio = 0;
+    private double varianza;
+    private double desviacion;
     public Proxy(String ip, Integer intervaloHumedad, String ipSistemaCalidad, String ipChecker, String ipCentralSensor, String ipCloud) {
         this.ip = ip;
         this.intervaloHumedad = intervaloHumedad;
@@ -58,7 +64,7 @@ public class Proxy {
     }
 
     public void start() {
-        
+
         // Crear y iniciar los handlers
         handlers.put(TipoSensor.TEMPERATURA, new ProxyHandler(TipoSensor.TEMPERATURA));
         handlers.put(TipoSensor.HUMEDAD, new ProxyHandler(TipoSensor.HUMEDAD));
@@ -78,7 +84,6 @@ public class Proxy {
             /*ZMQ.Socket socketChecker = context.createSocket(ZMQ.REP);
             socketChecker.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CHECKER);*/
 
-
             while (true) {
                 try {
                     /*//TODO MANEJO DE FALLAS PROXY
@@ -93,11 +98,30 @@ public class Proxy {
                     String mensaje = socketMedicion.recvStr();
                     Medicion medicion = Medicion.fromJson(mensaje);
 
-                    if(medicion.isAlerta() && medicion.isCorrecta()){
+                    if (medicion.isAlerta() && medicion.isCorrecta()) {
+                        // Registra el tiempo antes de enviar el mensaje
+                        long startTime = System.currentTimeMillis();
                         socketCloud.send(medicion.toJson());
                         byte[] response = socketCloud.recv(0);
-                        System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
+                        // Registra el tiempo después de recibir la respuesta
+                        long endTime = System.currentTimeMillis();
+                        // Calcula y muestra la duración de la comunicación
+                        long duration = endTime - startTime;
+                        promedioTiempoComunicacion.add(duration);
+                        promedio = promedioTiempoComunicacion.stream().mapToLong(Long::longValue).sum() / promedioTiempoComunicacion.size();
+                        varianza = promedioTiempoComunicacion.stream()
+                                .mapToDouble(num -> Math.pow(num - promedio, 2))
+                                .average()
+                                .orElse(0.0);
+                        desviacion = round(sqrt(varianza));
 
+                        System.out.println("Tiempo de comunicación: " + duration + " ms");
+                        System.out.println("Desviacion: " + varianza);
+                        System.out.println("Recibo del cloud: " + new String(response, ZMQ.CHARSET));
+                        synchronized (Proxy.class) {
+                            cantidadMensajes++;
+                            System.out.println("Cantidad de mensajes: " + cantidadMensajes);
+                        }
                     }
 
                     // Enviar la medición al handler correspondiente

@@ -16,6 +16,7 @@ import java.util.TimerTask;
 public class CentralCloud {
     private static final List<Double> SumasHumedad = new ArrayList<>();
     private static int calculoNumero = 1;
+    private static int cantidadMensajes = 0;
 
     public static void main(String[] args) throws Exception {
         Cloud cloud = new Cloud(Ip.IP_CLOUD, Ip.IP_FOG, Ip.IP_CLOUD, 20);
@@ -24,7 +25,7 @@ public class CentralCloud {
             ZMQ.Socket socket = context.createSocket(ZMQ.REP);
             socket.bind("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_PROXY_CLOUD);
 
-            // Socket para comunicación con cloud (REPLY)
+            // Socket para comunicación con cloud (REQUEST)
             ZMQ.Socket socketSistemaCalidad = context.createSocket(ZMQ.REQ);
             socket.connect("tcp://" + Ip.IP_CLOUD + ":" + Ip.PORT_SC_CLOUD);
 
@@ -73,6 +74,12 @@ public class CentralCloud {
                 // Convertir el mensaje de byte array a String
                 String mensaje = new String(reply, ZMQ.CHARSET);
                 System.out.println("Received: [" + mensaje + "]");
+
+                // Incrementar el contador de mensajes
+                synchronized (CentralCloud.class) {
+                    cantidadMensajes++;
+                    System.out.println("Cantidad de alertas recibidas: " + cantidadMensajes);
+                }
 
                 // Procesar el mensaje como cadena
                 try {
@@ -133,8 +140,7 @@ public class CentralCloud {
             double promedio = suma / cantidad;
             System.out.println("HUMEDAD RELATIVA MENSUAL #" + (calculoNumero++) + ": " + promedio);
             // Enviar alerta a sistemas de calidad
-            if(promedio < TipoSensor.HUMEDAD_INFERIOR || promedio > TipoSensor.HUMEDAD_SUPERIOR){
-
+            if (promedio < TipoSensor.HUMEDAD_INFERIOR || promedio > TipoSensor.HUMEDAD_SUPERIOR) {
                 System.out.println("ALERTA HUMEDAD: " + promedio);
 
                 // Obtener la hora actual
@@ -146,7 +152,6 @@ public class CentralCloud {
                 socketSistemaCalidad.send(medicion.toJson());
                 byte[] response = socketSistemaCalidad.recv(0);
                 System.out.println("Recibo del SC: " + new String(response, ZMQ.CHARSET));
-
             }
         } else {
             System.out.println("HUMEDAD RELATIVA MENSUAL #" + (calculoNumero++) + ": No hay datos");

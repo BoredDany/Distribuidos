@@ -1,6 +1,5 @@
 package org.example.Fog;
 
-import org.example.Edge.SensorHumedad;
 import org.example.utils.Ip;
 import org.example.utils.Medicion;
 import org.example.utils.TipoSensor;
@@ -11,16 +10,16 @@ import org.zeromq.ZMQ;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ProxyHandler implements Runnable {
     private final String tipoSensor;
     private final List<Medicion> mediciones = new ArrayList<>();
     private Medicion medicionRecibida = null;
-    private  Double promedioHumedad = 0.0;
+    private Double promedioHumedad = 0.0;
     private final ZContext context;
     private final ZMQ.Socket socketCloud;
     private final ZMQ.Socket socketSistemaCalidad;
+    private static int cantidadMensajes = 0;
 
     public ProxyHandler(String tipoSensor) {
         this.tipoSensor = tipoSensor;
@@ -42,33 +41,44 @@ public class ProxyHandler implements Runnable {
                         .orElse(0.0);
                 System.out.println("Promedio -> " + medicion.getTipoSensor() + ": " + promedio);
 
-                if(this.tipoSensor.equals(TipoSensor.HUMEDAD)) {
+                if (this.tipoSensor.equals(TipoSensor.HUMEDAD)) {
                     this.promedioHumedad = promedio;
                 }
 
-                try{
+                try {
                     // Enviar al cloud mediciones
-                    if(this.medicionRecibida.getTipoSensor().equals(TipoSensor.TEMPERATURA)){
-                        if(promedio < TipoSensor.TEMPERATURA_INFERIOR || promedio > TipoSensor.TEMPERATURA_SUPERIOR){
+                    if (this.medicionRecibida.getTipoSensor().equals(TipoSensor.TEMPERATURA)) {
+                        if (promedio < TipoSensor.TEMPERATURA_INFERIOR || promedio > TipoSensor.TEMPERATURA_SUPERIOR) {
                             System.out.println("ALERTA TEMPERATURA PROMEDIO -> " + medicion.getTipoSensor() + ": " + promedio);
                             // Obtener la hora actual
                             LocalTime now = LocalTime.now();
                             String hora = now.getHour() + ":" + now.getMinute() + ":" + now.getSecond();
-                            socketCloud.send(new Medicion(TipoSensor.ALERTA_TEMPERATURA, 0, promedio, hora, true, true).toJson());
+                            synchronized (ProxyHandler.class) {
+                                socketCloud.send(new Medicion(TipoSensor.ALERTA_TEMPERATURA, 0, promedio, hora, true, true).toJson());
+                                String respuesta = socketCloud.recvStr();
+                                System.out.println("Respuesta del cloud: " + respuesta);
+                                cantidadMensajes++;
+                                System.out.println("Cantidad de mensajes: " + cantidadMensajes);
+
+                                // Notificar sistema de calidad de capa fog
+                                socketSistemaCalidad.send("ALERTA TEMPERATURA: " + promedio);
+                                byte[] responseSC = socketSistemaCalidad.recv(0);
+                                System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
+                                cantidadMensajes++;
+                                System.out.println("Cantidad de mensajes: " + cantidadMensajes);
+                            }
+                        }
+                    } else {
+                        // enviar promedio al cloud si es humedad
+                        synchronized (ProxyHandler.class) {
+                            socketCloud.send(new Medicion(TipoSensor.PROMEDIO_HUMEDAD, 0, this.promedioHumedad, "hora", true, true).toJson());
                             String respuesta = socketCloud.recvStr();
                             System.out.println("Respuesta del cloud: " + respuesta);
-                            // Notificar sistema de calidad de capa fog
-                            socketSistemaCalidad.send("ALERTA TEMPERATURA: " + promedio);
-                            byte[] responseSC = socketSistemaCalidad.recv(0);
-                            System.out.println("Respuesta del sistema de calidad: " + new String(responseSC, ZMQ.CHARSET));
+                            cantidadMensajes++;
+                            System.out.println("Cantidad de mensajes: " + cantidadMensajes);
                         }
-                    } else{
-                        // enviar promedio al cloud si es humedad
-                        socketCloud.send(new Medicion(TipoSensor.PROMEDIO_HUMEDAD, 0, this.promedioHumedad, "hora", true, true).toJson());
-                        String respuesta = socketCloud.recvStr();
-                        System.out.println("Respuesta del cloud: " + respuesta);
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -81,5 +91,4 @@ public class ProxyHandler implements Runnable {
     public void run() {
 
     }
-
 }

@@ -3,18 +3,20 @@ package org.example.utils;
 public class Ip {
 
     public static final String nico = "10.43.100.243";
-    public static final String dani = "10.43.100.223";
+    public static final String dani = "10.43.101.223";
+
+    public static final String santi = "10.43.101.18";
 
     //EDGE
-    public static final String IP_EDGE = dani;
+    public static final String IP_EDGE = "localhost";
 
 
     //FOG, HEALTHCKECKER Y CLOUD
-    public static String IP_FOG = dani;
-    public static final String IP_CLOUD = dani;
+    public static String IP_FOG = "localhost";
+    public static final String IP_CLOUD = "localhost";
 
     //FOG SECUNDARIO
-    public static String IP_FOG_SECUNDARIO = dani;
+    public static String IP_FOG_SECUNDARIO = "localhost";
 
     //PORTS
     public static final String PORT_SENSOR_ASPERSOR = "5000";
