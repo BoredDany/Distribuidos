@@ -20,7 +20,6 @@ public class HealthChecker {
             // Establecer timeout de 3 segundos para recibir respuesta
             socketProxy.setReceiveTimeOut(3000);
 
-            //TODO MANEJAR LOS DIFERENTES PROCESOS DE SENSORES
             // Socket para comunicación con edge (PUB)
             ZMQ.Socket publisher = context.createSocket(ZMQ.PUB);
             publisher.bind("tcp://" + Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER_HUMO);

@@ -78,7 +78,7 @@ public class Proxy {
 
 
             // Crear un hilo para manejar las solicitudes del HealthChecker
-            new Thread(() -> {
+            /*new Thread(() -> {
                 try (ZContext context2 = new ZContext()) {
                     // Crear un socket para comunicarse con CHECKER
                     ZMQ.Socket socketChecker = context2.createSocket(ZMQ.REP);
@@ -96,7 +96,7 @@ public class Proxy {
                 } catch (Exception e) {
                     System.out.println("Error handling HealthChecker requests: " + e.getMessage());
                 }
-            }).start();
+            }).start();*/
 
 
             while (true) {

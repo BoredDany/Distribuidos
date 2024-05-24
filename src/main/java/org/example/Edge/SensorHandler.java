@@ -62,36 +62,15 @@ public class SensorHandler implements Runnable{
                 ZMQ.Socket socketSistemaCalidad = context.createSocket(SocketType.REQ);
                 socketSistemaCalidad.connect("tcp://" +  Ip.IP_EDGE + ":" + Ip.PORT_SC_EDGE);
 
-                //TODO MANEJAR DISTINTOS PROCESOS PARA CADA SENSOR
+                /*//TODO MANEJAR DISTINTOS PROCESOS PARA CADA SENSOR
                 // Socket de comunicacion con checker (SUB)
                 ZMQ.Socket subscriber = context.createSocket(ZMQ.SUB);
                 subscriber.connect("tcp://" +  Ip.IP_EDGE + ":" + Ip.PORT_EDGE_CHECKER_HUMO); // Cambia esto a la dirección y puerto que usaste en el HealthChecker
-                subscriber.subscribe(ZMQ.SUBSCRIPTION_ALL);
+                subscriber.subscribe(ZMQ.SUBSCRIPTION_ALL);*/
 
 
                 try {
                     while (true){
-
-                        //Recibir mensajes del checker
-                        String message = subscriber.recvStr(ZMQ.DONTWAIT);
-                        if (message != null) {
-                            Checkeo checkeo = Checkeo.fromJson(message); // Asume que tienes un método para convertir de JSON a Checkeo
-                            Ip.IP_FOG = checkeo.getIp(); // Actualiza la IP del proxy
-                            System.out.println("CAMBIO IP: " + checkeo.getIp());
-                            System.out.println("+++++++++++++++++++++++++" +
-                                    "++++++++++++++++++++++++++++++ " + checkeo.getIp());
-
-                            // Cerrar el socket existente
-                            socketMedicion.close();
-
-                            // Crear un nuevo socket con la nueva dirección IP
-                            socketMedicion = context.createSocket(SocketType.PUSH);
-                            socketMedicion.connect("tcp://" + Ip.IP_FOG + ":" + Ip.PORT_SENSOR_PROXY);
-
-                        } else {
-                            // No hay mensajes disponibles, puedes hacer algo más aquí si lo deseas
-                        }
-
                         // Generar medición
                         double medicion = sensor.generarMedicion(dentroRango, fueraRango, erroreno);
 
